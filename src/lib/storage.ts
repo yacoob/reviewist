@@ -1,9 +1,9 @@
 // ABOUTME: localStorage helpers for persisting user settings.
 // ABOUTME: Manages API token and excluded project preferences.
 
-const TOKEN_KEY = 'todoist_review_token';
-const EXCLUDED_KEY = 'todoist_review_excluded';
-const REFRESH_KEY = 'todoist_review_refresh';
+const TOKEN_KEY = 'reviewist_token';
+const EXCLUDED_KEY = 'reviewist_excluded';
+const REFRESH_KEY = 'reviewist_refresh';
 
 export function loadToken(): string {
   return localStorage.getItem(TOKEN_KEY) ?? '';
