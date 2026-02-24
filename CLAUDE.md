@@ -47,7 +47,7 @@ Todoist has gone through multiple API versions. The current state (Feb 2026):
    - `getTasks Completed By Completion Date` — ideal for "what did I finish this week"
    - `getTasks Completed By Due Date` — useful for "what was due this week"
 
-   **Exact URL paths and parameter names are unconfirmed.** The docs are rendered via Redocly and hard to scrape. The prototype tries `/api/v1/tasks/completed` with `since`/`until` and `completed_after`/`completed_before` params.
+   Confirmed endpoint: `GET /api/v1/tasks/completed?since={ISO}&until={ISO}&limit=200`. Parameters are `since`/`until` (ISO datetimes).
 
 2. **Sync v9** (`api.todoist.com/sync/v9/completed/get_all`) — deprecated but still documented and appears to still work. Takes `since` (ISO datetime), `until` (ISO datetime), `limit` (int, max 200), `project_id` (optional filter). Returns:
    ```json
@@ -152,10 +152,6 @@ reviewist/
 - `mise run lint` / `npm run lint` — ESLint with Svelte + TypeScript rules
 
 ## Improvement Roadmap
-
-### High Priority
-
-- **Pin down exact v1 endpoint params** — currently trying two URL patterns, one is presumably 404ing silently. Confirm and remove the dead one
 
 ### Medium Priority
 
