@@ -28,6 +28,10 @@
 </script>
 
 <div class="task-item">
+  <span
+    class="task-time"
+    class:has-tooltip={task.count > 1 && !!latestTime}
+    title={task.count > 1 ? allTimesFormatted : undefined}>{latestTime}</span>
   {#if task.is_event}
     <span class="task-check event-bullet" style={projHex ? `color:${projHex}` : ''}>●</span>
   {:else}
@@ -55,19 +59,13 @@
         class="task-project"
         style={projStyle}>{project.name}</a>
     {/if}
-    {#if latestTime}
-      <span
-        class="task-time"
-        class:has-tooltip={task.count > 1}
-        title={task.count > 1 ? allTimesFormatted : undefined}>{latestTime}</span>
-    {/if}
   </div>
 </div>
 
 <style>
   .task-item {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     gap: 0.6rem;
     padding: 0.45rem 0;
     font-size: 0.85rem;
@@ -75,7 +73,6 @@
   .task-check {
     color: var(--green);
     font-size: 0.75rem;
-    margin-top: 0.15rem;
     flex-shrink: 0;
   }
   .task-content { flex: 1; color: var(--text); }
@@ -104,6 +101,9 @@
     font-size: 0.6rem;
     color: var(--text-muted);
     white-space: nowrap;
+    width: 2.5em;
+    text-align: right;
+    flex-shrink: 0;
   }
   .task-time.has-tooltip {
     cursor: help;
