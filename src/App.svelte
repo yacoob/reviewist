@@ -2,13 +2,16 @@
 <!-- ABOUTME: Manages auto-refresh, project exclusion, and composes all child components. -->
 
 <script lang="ts">
+  import { onMount } from 'svelte';
   import type { CompletedTask, Project, StatusType } from './lib/types';
   import { fmtDate } from './lib/dates';
   import { fetchProjects, fetchCompletedTasks } from './lib/api';
   import {
     loadToken, saveToken, forgetToken as forgetStoredToken,
     loadExcludedProjects, saveExcludedProjects,
+    loadRefreshInterval, saveRefreshInterval,
   } from './lib/storage';
+  import { loadCache, saveCache, clearCache } from './lib/cache';
   import Header from './components/Header.svelte';
   import SetupPanel from './components/SetupPanel.svelte';
   import StatusMessage from './components/StatusMessage.svelte';
@@ -23,6 +26,8 @@
   let statusType: StatusType = $state(null);
   let setupVisible = $state(false);
   let fetching = $state(false);
+  let fromCache = $state(false);
+  let refreshInterval = $state(loadRefreshInterval());
 
   let token = $state(loadToken());
   let since = $state(fmtDate(new Date(Date.now() - 42 * 86400000)));
@@ -58,7 +63,9 @@
       projects = { ...projects, ...projMap };
       allTasks = items;
       lastFetchTime = Date.now();
+      fromCache = false;
       clearStatus();
+      saveCache(since, until, { tasks: items, projects: projMap, fetchedAt: lastFetchTime });
     } catch (e) {
       if (!silent) {
         showStatus((e as Error).message, 'error');
@@ -79,8 +86,15 @@
 
   function handleForget() {
     forgetStoredToken();
+    clearCache();
     token = '';
+    refreshInterval = 0;
     showStatus('Token forgotten', 'info');
+  }
+
+  function handleRefreshChange(ms: number) {
+    refreshInterval = ms;
+    saveRefreshInterval(ms);
   }
 
   function handleToggleProject(pid: string) {
@@ -93,33 +107,42 @@
     saveExcludedProjects(excludedProjects);
   }
 
-  // Auto-fetch on load if token present, otherwise show setup
-  $effect(() => {
-    if (token) {
-      doFetch();
-    } else {
+  // Load cached data then fetch fresh on mount, or show setup if no token
+  onMount(async () => {
+    if (!token) {
       setupVisible = true;
+      return;
     }
+    const cached = await loadCache(since, until);
+    if (cached) {
+      allTasks = cached.tasks;
+      projects = cached.projects;
+      lastFetchTime = cached.fetchedAt;
+      fromCache = true;
+    }
+    await doFetch(cached != null);
   });
 
-  // Auto-refresh every 60 seconds
+  // Configurable auto-refresh (0 = off)
   $effect(() => {
-    if (!token) return;
-    const id = setInterval(() => doFetch(true), 60000);
+    if (!token || refreshInterval === 0) return;
+    const id = setInterval(() => doFetch(true), refreshInterval);
     return () => clearInterval(id);
   });
 </script>
 
 <div class="container">
-  <Header {lastFetchTime} onToggleSetup={() => (setupVisible = !setupVisible)} />
+  <Header {lastFetchTime} {fromCache} onToggleSetup={() => (setupVisible = !setupVisible)} />
   <SetupPanel
     visible={setupVisible}
     bind:token
     bind:since
     bind:until
     {fetching}
+    {refreshInterval}
     onFetch={handleFetch}
     onForget={handleForget}
+    onRefreshChange={handleRefreshChange}
   />
   <StatusMessage message={statusMessage} type={statusType} />
 

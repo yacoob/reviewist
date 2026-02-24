@@ -8,11 +8,13 @@
     since: string;
     until: string;
     fetching: boolean;
+    refreshInterval: number;
     onFetch: () => void;
     onForget: () => void;
+    onRefreshChange: (ms: number) => void;
   }
 
-  let { visible, token = $bindable(), since = $bindable(), until = $bindable(), fetching, onFetch, onForget }: Props = $props();
+  let { visible, token = $bindable(), since = $bindable(), until = $bindable(), fetching, refreshInterval, onFetch, onForget, onRefreshChange }: Props = $props();
 </script>
 
 {#if visible}
@@ -34,6 +36,15 @@
       <div class="field">
         <label for="until-input">To</label>
         <input id="until-input" type="date" bind:value={until} />
+      </div>
+      <div class="field">
+        <label for="refresh-select">Auto-refresh</label>
+        <select id="refresh-select" value={refreshInterval} onchange={(e) => onRefreshChange(Number(e.currentTarget.value))}>
+          <option value={0}>Off</option>
+          <option value={60000}>1 min</option>
+          <option value={300000}>5 min</option>
+          <option value={900000}>15 min</option>
+        </select>
       </div>
       <button class="btn-primary" disabled={fetching} onclick={onFetch}>
         {fetching ? '...' : 'Fetch'}

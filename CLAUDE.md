@@ -111,11 +111,12 @@ reviewist/
 │   │   ├── types.ts        # Interfaces for API responses + internal state
 │   │   ├── api.ts          # Todoist fetch functions (projects, completed tasks)
 │   │   ├── colors.ts       # TODOIST_COLORS map
+│   │   ├── cache.ts        # IndexedDB cache for instant render from stale data
 │   │   ├── dates.ts        # fmtDate, formatDayLabel
-│   │   └── storage.ts      # localStorage helpers (token, excluded projects)
+│   │   └── storage.ts      # localStorage helpers (token, excluded projects, refresh interval)
 │   └── components/
 │       ├── Header.svelte       # Title, refresh indicator, settings toggle
-│       ├── SetupPanel.svelte   # Token, date range, fetch/forget buttons
+│       ├── SetupPanel.svelte   # Token, date range, refresh interval, fetch/forget buttons
 │       ├── StatusMessage.svelte # Error/info/loading bar
 │       ├── FilterChips.svelte  # Project filter toggles with Todoist colors
 │       ├── TaskList.svelte     # Day grouping, dedup, renders TaskItems
@@ -125,7 +126,8 @@ reviewist/
 ### Features
 
 - Token input with localStorage persistence, collapsible settings panel (⚙ toggle)
-- Auto-fetch on load if token present, 60-second silent background refresh
+- IndexedDB cache: renders stale data instantly on load, then refreshes in background
+- Configurable auto-refresh interval (off / 1m / 5m / 15m), persisted in localStorage
 - Date range picker (defaults to 6 weeks back)
 - Todoist API v1 only (old sync v9 / activity log fallbacks removed)
 - Groups completed tasks by day (newest day first), sorted by completion time within each day
@@ -150,15 +152,14 @@ reviewist/
 
 - **Notes/events rendering** — uncompletable tasks (`* ` prefix) could render without the checkmark, confirming "this is a note not a task"
 - **Pin down exact v1 endpoint params** — currently trying two URL patterns, one is presumably 404ing silently. Confirm and remove the dead one
-- **IndexedDB cache** — store fetched data with TTL, page loads instantly with stale data then refreshes in background. Also solves the "new file path = new storage" problem (IndexedDB is origin-scoped, not path-scoped like file:// localStorage)
-- **Date range presets** — quick buttons for "this week", "last week", "this month", "last 30d" instead of always picking dates
-- **Upcoming deadlines panel** — month-floaters with deadline fields. A weekly review needs "what's coming due" alongside "what got done". Single API call to active tasks filtered by deadline range
 
 ### Medium Priority
 
 - **Section grouping** — Todoist sections are meaningful, currently lost in the flat list
 - **Pagination** — 200-item limit will bite on 6-week ranges with heavy use. Need cursor-based fetch loop
 - **Keyboard shortcuts** — `[`/`]` to shift the date window back/forward by one week
+- **Date range presets** — quick buttons for "this week", "last week", "this month", "last 30d" instead of always picking dates
+- **Upcoming deadlines panel** — month-floaters with deadline fields. A weekly review needs "what's coming due" alongside "what got done". Single API call to active tasks filtered by deadline range
 
 ### Low Priority / Speculative
 

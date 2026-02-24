@@ -3,6 +3,7 @@
 
 const TOKEN_KEY = 'todoist_review_token';
 const EXCLUDED_KEY = 'todoist_review_excluded';
+const REFRESH_KEY = 'todoist_review_refresh';
 
 export function loadToken(): string {
   return localStorage.getItem(TOKEN_KEY) ?? '';
@@ -15,6 +16,7 @@ export function saveToken(token: string): void {
 export function forgetToken(): void {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(EXCLUDED_KEY);
+  localStorage.removeItem(REFRESH_KEY);
 }
 
 export function loadExcludedProjects(): string[] {
@@ -27,4 +29,13 @@ export function loadExcludedProjects(): string[] {
 
 export function saveExcludedProjects(excluded: string[]): void {
   localStorage.setItem(EXCLUDED_KEY, JSON.stringify(excluded));
+}
+
+export function loadRefreshInterval(): number {
+  const val = localStorage.getItem(REFRESH_KEY);
+  return val ? Number(val) : 0;
+}
+
+export function saveRefreshInterval(ms: number): void {
+  localStorage.setItem(REFRESH_KEY, String(ms));
 }
