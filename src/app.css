@@ -16,6 +16,8 @@
   --green-dim: rgba(76, 175, 80, 0.12);
 }
 
+html { font-size: 21px; }
+
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
