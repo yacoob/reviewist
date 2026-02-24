@@ -5,7 +5,7 @@
   import { onMount } from 'svelte';
   import type { CompletedTask, Project, StatusType } from './lib/types';
   import { fmtDate } from './lib/dates';
-  import { fetchProjects, fetchCompletedTasks } from './lib/api';
+  import { fetchProjects, fetchCompletedTasks, fetchEventTasks } from './lib/api';
   import {
     loadToken, saveToken, forgetToken as forgetStoredToken,
     loadExcludedProjects, saveExcludedProjects,
@@ -55,17 +55,18 @@
     }
 
     try {
-      const [projMap, items] = await Promise.all([
+      const [projMap, items, eventItems] = await Promise.all([
         fetchProjects(token),
         fetchCompletedTasks(token, since, until),
+        fetchEventTasks(token, since, until),
       ]);
 
       projects = { ...projects, ...projMap };
-      allTasks = items;
+      allTasks = [...items, ...eventItems];
       lastFetchTime = Date.now();
       fromCache = false;
       clearStatus();
-      saveCache(since, until, { tasks: items, projects: projMap, fetchedAt: lastFetchTime });
+      saveCache(since, until, { tasks: [...items, ...eventItems], projects: projMap, fetchedAt: lastFetchTime });
     } catch (e) {
       if (!silent) {
         showStatus((e as Error).message, 'error');

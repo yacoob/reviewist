@@ -64,3 +64,37 @@ export async function fetchCompletedTasks(
     'Completed tasks endpoint failed. Check your token and Pro plan.',
   );
 }
+
+function nextDay(dateStr: string): string {
+  const d = new Date(dateStr + 'T00:00:00');
+  d.setDate(d.getDate() + 1);
+  return d.toISOString().slice(0, 10);
+}
+
+export async function fetchEventTasks(
+  token: string,
+  since: string,
+  until: string,
+): Promise<CompletedTask[]> {
+  const filter = `#Events & due after: ${since} & due before: ${nextDay(until)}`;
+  const data = await api(
+    `https://api.todoist.com/api/v1/tasks/filter?query=${encodeURIComponent(filter)}`,
+    token,
+  );
+  const items = Array.isArray(data)
+    ? data
+    : ((data as Record<string, unknown>).results as unknown[]) ?? [];
+  return (items as Record<string, unknown>[]).map((t) => {
+    const due = t.due as Record<string, string>;
+    return {
+      content: t.content as string,
+      completed_at: due.date,
+      project_id: t.project_id as string,
+      section_id: (t.section_id as string) || '',
+      task_id: t.id as string,
+      id: `event-${t.id}`,
+      labels: t.labels as string[] | undefined,
+      is_event: true,
+    };
+  });
+}

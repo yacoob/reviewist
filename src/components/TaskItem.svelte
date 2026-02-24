@@ -13,8 +13,9 @@
   let { task, project }: Props = $props();
 
   let rawContent = $derived(task.content || task.task_id || '?');
-  let inlineLabels = $derived((rawContent.match(/@\w+/g) || []).map((l: string) => l.slice(1)));
-  let content = $derived(rawContent.replace(/@\w+/g, '').replace(/\s{2,}/g, ' ').trim());
+  let strippedContent = $derived(task.is_event ? rawContent.replace(/^\*\s+/, '') : rawContent);
+  let inlineLabels = $derived((strippedContent.match(/@\w+/g) || []).map((l: string) => l.slice(1)));
+  let content = $derived(strippedContent.replace(/@\w+/g, '').replace(/\s{2,}/g, ' ').trim());
   let labels = $derived([...new Set([...inlineLabels, ...(task.labels || [])])]);
   let latestTime = $derived((task.completed_at || '').split('T')[1]?.slice(0, 5) || '');
   let projHex = $derived(project?.color ? (TODOIST_COLORS[project.color] || null) : null);
@@ -27,7 +28,11 @@
 </script>
 
 <div class="task-item">
-  <span class="task-check">✓</span>
+  {#if task.is_event}
+    <span class="task-check event-bullet" style={projHex ? `color:${projHex}` : ''}>●</span>
+  {:else}
+    <span class="task-check">✓</span>
+  {/if}
   <span class="task-content">{content}</span>
   <div class="task-meta">
     {#if task.count > 1}

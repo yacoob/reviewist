@@ -73,6 +73,10 @@ Todoist has gone through multiple API versions. The current state (Feb 2026):
 
 3. **Activity Log** (`api.todoist.com/api/v1/activity`) — last resort. Filterable by `event_type=completed`, `object_type=item`. Less structured.
 
+### Filter Endpoint
+
+- `GET /api/v1/tasks/filter?query={filter}` — accepts Todoist filter syntax (e.g. `#Events & due after: 2026-01-13 & due before: 2026-02-25`). Returns `{ results: [...], next_cursor: ... }`. Used to fetch event tasks from the Events project within a date range. Note: `due after`/`due before` are exclusive boundaries.
+
 ### Projects Endpoint
 
 - v1: `GET /api/v1/projects` — returns array of project objects
@@ -109,7 +113,7 @@ reviewist/
 │   ├── app.css             # Global: CSS vars, reset, typography, print, responsive
 │   ├── lib/
 │   │   ├── types.ts        # Interfaces for API responses + internal state
-│   │   ├── api.ts          # Todoist fetch functions (projects, completed tasks)
+│   │   ├── api.ts          # Todoist fetch functions (projects, completed tasks, event tasks)
 │   │   ├── colors.ts       # TODOIST_COLORS map
 │   │   ├── cache.ts        # IndexedDB cache for instant render from stale data
 │   │   ├── dates.ts        # fmtDate, formatDayLabel
@@ -137,6 +141,7 @@ reviewist/
 - Project tags colored to match Todoist's 20-color palette
 - Inline `@label` parsing from task content, shown as clickable chips
 - Print-friendly CSS
+- Event tasks (uncompletable `* ` tasks from Events project) shown in review with colored bullet instead of checkmark, grouped by due date
 - Dark theme, JetBrains Mono + DM Sans typography
 
 ### Dev Workflow
@@ -150,7 +155,6 @@ reviewist/
 
 ### High Priority
 
-- **Notes/events rendering** — uncompletable tasks (`* ` prefix) could render without the checkmark, confirming "this is a note not a task"
 - **Pin down exact v1 endpoint params** — currently trying two URL patterns, one is presumably 404ing silently. Confirm and remove the dead one
 
 ### Medium Priority
