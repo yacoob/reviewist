@@ -46,7 +46,7 @@ Todoist has gone through multiple API versions. The current state (Feb 2026):
 1. **New unified API v1** (`api.todoist.com/api/v1/`) — REST v2 and Sync v9 are deprecated. The v1 docs list two relevant endpoints in the Tasks section:
    - `getTasks Completed By Completion Date` — ideal for "what did I finish this week"
    - `getTasks Completed By Due Date` — useful for "what was due this week"
-   
+
    **Exact URL paths and parameter names are unconfirmed.** The docs are rendered via Redocly and hard to scrape. The prototype tries `/api/v1/tasks/completed` with `since`/`until` and `completed_after`/`completed_before` params.
 
 2. **Sync v9** (`api.todoist.com/sync/v9/completed/get_all`) — deprecated but still documented and appears to still work. Takes `since` (ISO datetime), `until` (ISO datetime), `limit` (int, max 200), `project_id` (optional filter). Returns:
@@ -90,7 +90,39 @@ When a recurring task is completed, Todoist doesn't create a separate "completed
 
 ## Current State
 
-Single HTML file (`reviewist.html`). Features:
+Vite + Svelte 5 + TypeScript app. Build produces a single self-contained HTML file via `vite-plugin-singlefile`. Dev environment managed by mise (Node 22 LTS).
+
+### Project Structure
+
+```
+reviewist/
+├── index.html              # Vite entry (minimal shell with font links)
+├── package.json
+├── vite.config.ts
+├── tsconfig.json
+├── svelte.config.js
+├── eslint.config.js
+├── mise.toml               # mise dev environment (Node 22)
+├── src/
+│   ├── main.ts             # Mount App
+│   ├── App.svelte           # Root: shared state, fetch orchestration, layout
+│   ├── app.css             # Global: CSS vars, reset, typography, print, responsive
+│   ├── lib/
+│   │   ├── types.ts        # Interfaces for API responses + internal state
+│   │   ├── api.ts          # Todoist fetch functions (projects, completed tasks)
+│   │   ├── colors.ts       # TODOIST_COLORS map
+│   │   ├── dates.ts        # fmtDate, formatDayLabel
+│   │   └── storage.ts      # localStorage helpers (token, excluded projects)
+│   └── components/
+│       ├── Header.svelte       # Title, refresh indicator, settings toggle
+│       ├── SetupPanel.svelte   # Token, date range, fetch/forget buttons
+│       ├── StatusMessage.svelte # Error/info/loading bar
+│       ├── FilterChips.svelte  # Project filter toggles with Todoist colors
+│       ├── TaskList.svelte     # Day grouping, dedup, renders TaskItems
+│       └── TaskItem.svelte     # Single task: check, content, label chips, project chip, time
+```
+
+### Features
 
 - Token input with localStorage persistence, collapsible settings panel (⚙ toggle)
 - Auto-fetch on load if token present, 60-second silent background refresh
@@ -101,43 +133,39 @@ Single HTML file (`reviewist.html`). Features:
 - Project filter chips as multi-select toggles, colored with Todoist project colors (active = colored, inactive = muted with colored hover)
 - Project tags on tasks link to `https://app.todoist.com/app/project/{id}`
 - Project tags colored to match Todoist's 20-color palette
+- Inline `@label` parsing from task content, shown as clickable chips
 - Print-friendly CSS
 - Dark theme, JetBrains Mono + DM Sans typography
 
-## Tech Stack Considerations
+### Dev Workflow
 
-The prototype is vanilla HTML/CSS/JS in a single file. Next steps:
-
-- **Vite** (or similar zero-config bundler) — keeps static-file simplicity, gives modules, TypeScript option, hot reload. Single entry → single HTML output via `build.rollupOptions.input`
-- If a backend becomes needed (e.g. webhook receiver, scheduled reports), user runs n8n on their homelab — could integrate there
-- Serve from homelab behind auth (nginx + basic auth or Authelia), hardcode token in `.env` at build time to eliminate localStorage dance
+- `mise run dev` / `npm run dev` — Vite dev server with hot reload
+- `mise run build` / `npm run build` — produces `dist/index.html` (single file, works from `file://`)
+- `mise run check` / `npm run check` — svelte-check type diagnostics
+- `mise run lint` / `npm run lint` — ESLint with Svelte + TypeScript rules
 
 ## Improvement Roadmap
 
-### High Priority — Next Session
+### High Priority
 
-- **Pagination** — 200-item limit will bite on 6-week ranges with heavy use. Need cursor-based fetch loop
+- **Notes/events rendering** — uncompletable tasks (`* ` prefix) could render without the checkmark, confirming "this is a note not a task"
 - **Pin down exact v1 endpoint params** — currently trying two URL patterns, one is presumably 404ing silently. Confirm and remove the dead one
+- **IndexedDB cache** — store fetched data with TTL, page loads instantly with stale data then refreshes in background. Also solves the "new file path = new storage" problem (IndexedDB is origin-scoped, not path-scoped like file:// localStorage)
 - **Date range presets** — quick buttons for "this week", "last week", "this month", "last 30d" instead of always picking dates
 - **Upcoming deadlines panel** — month-floaters with deadline fields. A weekly review needs "what's coming due" alongside "what got done". Single API call to active tasks filtered by deadline range
-- **Section grouping** — Todoist sections are meaningful, currently lost in the flat list
 
 ### Medium Priority
 
-- **IndexedDB cache** — store fetched data with TTL, page loads instantly with stale data then refreshes in background. Also solves the "new file path = new storage" problem (IndexedDB is origin-scoped, not path-scoped like file:// localStorage)
-- **Recurring vs one-off annotation** — visually distinguish "fed the cats" (daily recurring) from "filed tax return" (one-off). API response may include `is_recurring` or cross-reference with active tasks
-- **Streak/consistency view** for recurring tasks — "fed cats: 7/7", "replaced fountain filter: 1/2 this month". This is what TickTick's Summary does well
-- **Markdown export** — copy button that dumps current view as markdown, for pasting into a journal or Obsidian
-- **Notes/events rendering** — uncompletable tasks (`* ` prefix) could render without the checkmark, confirming "this is a note not a task"
+- **Section grouping** — Todoist sections are meaningful, currently lost in the flat list
+- **Pagination** — 200-item limit will bite on 6-week ranges with heavy use. Need cursor-based fetch loop
 - **Keyboard shortcuts** — `[`/`]` to shift the date window back/forward by one week
-- **Project exclusion by name** — persist by project name not ID, survives delete+recreate
 
 ### Low Priority / Speculative
 
+- **Project exclusion by name** — persist by project name not ID, survives delete+recreate
+- **Recurring vs one-off annotation** — visually distinguish "fed the cats" (daily recurring) from "filed tax return" (one-off). API response may include `is_recurring` or cross-reference with active tasks
+- **Markdown export** — copy button that dumps current view as markdown, for pasting into a journal or Obsidian
 - **Webhook-driven mode** — Todoist POSTs completion events to an endpoint. Tiny receiver (n8n webhook node) builds local SQLite DB of completions. Eliminates pagination, enables historical analytics, survives API changes
-- **Habit heatmap** — GitHub contribution graph style for recurring tasks
-- **Comparison view** — "this week vs last week" side by side
-- **Dark/light toggle** — dark by default, but offer light mode (print is already light)
 - **Offline/PWA** — service worker for offline access to last-fetched data
 
 ## Todoist Feature Notes

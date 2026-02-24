@@ -1,0 +1,61 @@
+/* ABOUTME: Global styles, CSS custom properties, reset, and base element rules. */
+/* ABOUTME: Includes typography, print styles, and responsive breakpoints. */
+
+:root {
+  --bg: #0a0a0b;
+  --surface: #141416;
+  --surface-2: #1c1c1f;
+  --surface-3: #242428;
+  --border: #2a2a2e;
+  --text: #e4e4e7;
+  --text-dim: #71717a;
+  --text-muted: #52525b;
+  --accent: #e44332;
+  --accent-dim: rgba(228, 67, 50, 0.15);
+  --green: #4caf50;
+  --green-dim: rgba(76, 175, 80, 0.12);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.5;
+}
+
+input, select {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 0.5rem 0.65rem;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.15s;
+}
+input:focus, select:focus { border-color: var(--accent); }
+input[type="password"] { letter-spacing: 0.1em; }
+
+button {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+@media (max-width: 600px) {
+  .container { padding: 1rem; }
+}
+
+@media print {
+  body { background: white; color: black; }
+  button { display: none !important; }
+}
