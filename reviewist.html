@@ -260,11 +260,12 @@
   .task-labels { display: inline-flex; gap: 0.25rem; }
   a.task-label {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 0.55rem;
-    color: var(--accent);
-    background: var(--accent-dim);
-    padding: 0.1rem 0.35rem;
-    border-radius: 2px;
+    font-size: 0.6rem;
+    color: var(--text-muted);
+    background: var(--surface-2);
+    padding: 0.15rem 0.45rem;
+    border-radius: 3px;
+    white-space: nowrap;
     text-decoration: none;
   }
   a.task-label:hover { text-decoration: underline; }
@@ -634,8 +635,10 @@ function renderResults() {
           ? `background:${projHex}22;color:${projHex};border:1px solid ${projHex}44`
           : '';
         const latestTime = (t.completed_at || '').split('T')[1]?.slice(0, 5) || '';
-        const content = t.content || t.task_id || '?';
-        const labels = t.labels || [];
+        const rawContent = t.content || t.task_id || '?';
+        const inlineLabels = (rawContent.match(/@\w+/g) || []).map(l => l.slice(1));
+        const content = rawContent.replace(/@\w+/g, '').replace(/\s{2,}/g, ' ').trim();
+        const labels = [...new Set([...inlineLabels, ...(t.labels || [])])];
         const countBadge = t.count > 1
           ? `<span class="task-count">×${t.count}</span>`
           : '';
@@ -648,8 +651,8 @@ function renderResults() {
           <span class="task-check">✓</span>
           <span class="task-content">${escHtml(content)}</span>
           <div class="task-meta">
-            ${labels.length ? `<span class="task-labels">${labels.map(l => `<a href="https://app.todoist.com/app/label/${encodeURIComponent(l)}" target="_blank" class="task-label">@${escHtml(l)}</a>`).join('')}</span>` : ''}
             ${countBadge}
+            ${labels.length ? `<span class="task-labels">${labels.map(l => `<a href="https://app.todoist.com/app/label/${encodeURIComponent(l)}" target="_blank" class="task-label">@${escHtml(l)}</a>`).join('')}</span>` : ''}
             ${projName ? `<a href="https://app.todoist.com/app/project/${t.project_id}" target="_blank" class="task-project" ${projStyle ? `style="${projStyle}"` : ''}>${escHtml(projName)}</a>` : ''}
             ${latestTime ? `<span class="task-time"${timeTooltip}>${latestTime}</span>` : ''}
           </div>
