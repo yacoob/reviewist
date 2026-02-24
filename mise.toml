@@ -16,3 +16,11 @@ description = "Run svelte-check type diagnostics"
 [tasks.lint]
 run = "npx eslint src/"
 description = "Run ESLint on source files"
+
+[tasks.clean]
+run = "rm -rf dist node_modules/.vite"
+description = "Remove build outputs and Vite cache"
+
+[tasks.raze]
+run = "rm -rf dist node_modules"
+description = "Remove all local/generated files, leaving only tracked sources"
