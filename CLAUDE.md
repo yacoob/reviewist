@@ -13,7 +13,7 @@ This is a personal tool for a single user (not multi-tenant). It's a client-side
 - Secondary: ad-hoc review of any date range
 - Uses Todoist Pro (required for unlimited activity history and deadline feature)
 - Labels for grouping: `@feline`, `@cleaning`, etc.
-- Has an "Events" project for non-task entries (e.g. "Dawn returns from London") — these should be filterable/excludable
+- Has an "Aside" project for non-task entries (e.g. "Dawn returns from London") — these should be filterable/excludable
 - Runs a homelab, comfortable self-hosting, prefers self-hosted solutions
 - Android user
 
@@ -28,7 +28,7 @@ These are the workarounds adopted for Todoist's limitations:
 | Recurring tasks (from completion) | `every! 2 weeks` | The `!` syntax |
 | Month floaters ("do sometime in March") | **Deadline** set to end of month | e.g. deadline March 31. Stays hidden until 7 days before. Filterable: `deadline: March 31` or `deadline before: April 1`. Cannot use deadlines on recurring tasks. |
 | Unmoored "eventually" tasks | No date, live in a project | Invisible in time-based views until assigned a date |
-| Notes/events (not tasks) | Separate "Events" project | Kludge. Everything is a checkbox. Filter out of working views. |
+| Notes/events (not tasks) | Separate "Aside" project | Kludge. Everything is a checkbox. Filter out of working views. |
 | Tags/grouping | Labels | `@feline`, `@cleaning`, etc. |
 | Weekly completed review | **This app** | The whole point |
 
@@ -75,7 +75,7 @@ Todoist has gone through multiple API versions. The current state (Feb 2026):
 
 ### Filter Endpoint
 
-- `GET /api/v1/tasks/filter?query={filter}` — accepts Todoist filter syntax (e.g. `#Events & due after: 2026-01-13 & due before: 2026-02-25`). Returns `{ results: [...], next_cursor: ... }`. Used to fetch event tasks from the Events project within a date range. Note: `due after`/`due before` are exclusive boundaries.
+- `GET /api/v1/tasks/filter?query={filter}` — accepts Todoist filter syntax (e.g. `#Aside & due after: 2026-01-13 & due before: 2026-02-25`). Returns `{ results: [...], next_cursor: ... }`. Used to fetch event tasks from the Aside project within a date range. Note: `due after`/`due before` are exclusive boundaries.
 
 ### Projects Endpoint
 
@@ -141,7 +141,7 @@ reviewist/
 - Project tags colored to match Todoist's 20-color palette
 - Inline `@label` parsing from task content, shown as clickable chips
 - Print-friendly CSS
-- Event tasks (uncompletable `* ` tasks from Events project) shown in review with colored bullet instead of checkmark, grouped by due date
+- Event tasks (uncompletable `* ` tasks from Aside project) shown in review with colored bullet instead of checkmark, grouped by due date
 - Dark theme, JetBrains Mono + DM Sans typography
 
 ### Dev Workflow
