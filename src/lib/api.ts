@@ -3,6 +3,9 @@
 
 import type { CompletedTask, Project } from './types';
 
+/** Todoist project name for non-task entries (events, notes). Used in filter queries. */
+export const EVENT_PROJECT_NAME = 'Aside';
+
 async function api(url: string, token: string): Promise<unknown> {
   const res = await fetch(url, {
     headers: { Authorization: `Bearer ${token}` },
@@ -61,7 +64,7 @@ export async function fetchEventTasks(
   since: string,
   until: string,
 ): Promise<CompletedTask[]> {
-  const filter = `#Events & due after: ${since} & due before: ${nextDay(until)}`;
+  const filter = `#${EVENT_PROJECT_NAME} & due after: ${since} & due before: ${nextDay(until)}`;
   const data = await api(
     `https://api.todoist.com/api/v1/tasks/filter?query=${encodeURIComponent(filter)}`,
     token,
