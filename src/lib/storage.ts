@@ -33,7 +33,7 @@ export function saveExcludedProjects(excluded: string[]): void {
 
 export function loadRefreshInterval(): number {
   const val = localStorage.getItem(REFRESH_KEY);
-  return val ? Number(val) : 0;
+  return val ? Number(val) : 300_000;
 }
 
 export function saveRefreshInterval(ms: number): void {
