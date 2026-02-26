@@ -58,7 +58,7 @@
         fetchEventTasks(token, since, until),
       ]);
 
-      projects = { ...projects, ...projMap };
+      projects = projMap;
       allTasks = [...items, ...eventItems];
       lastFetchTime = Date.now();
       fromCache = false;

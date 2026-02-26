@@ -23,55 +23,27 @@
     });
   });
 
-  function chipStyle(pid: string): string {
+  function chipColor(pid: string): string | null {
     const p = projects[pid];
-    const hex = p?.color ? TODOIST_COLORS[p.color] || null : null;
-    const on = !excludedProjects.includes(pid);
-
-    if (on && hex) {
-      return `background:${hex}22;color:${hex};border-color:${hex}44`;
-    }
-    if (!on) {
-      return 'opacity:0.45';
-    }
-    return '';
+    return p?.color ? TODOIST_COLORS[p.color] || null : null;
   }
 
   function chipName(pid: string): string {
     return projects[pid]?.name || pid || '?';
-  }
-
-  function handleHover(e: MouseEvent, pid: string, entering: boolean) {
-    const on = !excludedProjects.includes(pid);
-    if (on) return;
-    const p = projects[pid];
-    const hex = p?.color ? TODOIST_COLORS[p.color] || null : null;
-    if (!hex) return;
-    const el = e.currentTarget as HTMLElement;
-    if (entering) {
-      el.style.opacity = '0.75';
-      el.style.background = `${hex}11`;
-      el.style.color = `${hex}88`;
-      el.style.borderColor = `${hex}22`;
-    } else {
-      el.style.opacity = '0.45';
-      el.style.background = '';
-      el.style.color = '';
-      el.style.borderColor = '';
-    }
   }
 </script>
 
 {#if sortedProjects.length > 0}
   <div class="filters">
     {#each sortedProjects as [pid] (pid)}
+      {@const hex = chipColor(pid)}
+      {@const active = !excludedProjects.includes(pid)}
       <span
         class="filter-chip"
+        class:active
         role="button"
         tabindex="0"
-        style={chipStyle(pid)}
-        onmouseenter={(e) => handleHover(e, pid, true)}
-        onmouseleave={(e) => handleHover(e, pid, false)}
+        style={hex ? `--chip-color:${hex}` : ''}
         onclick={() => onToggle(pid)}
         onkeydown={(e) => e.key === 'Enter' && onToggle(pid)}
       >{chipName(pid)}</span>
@@ -97,6 +69,19 @@
     cursor: pointer;
     transition: all 0.15s;
     user-select: none;
+    opacity: 0.45;
+  }
+  .filter-chip.active {
+    opacity: 1;
+    background: color-mix(in srgb, var(--chip-color, var(--text-dim)) 13%, transparent);
+    color: var(--chip-color, var(--text-dim));
+    border-color: color-mix(in srgb, var(--chip-color, var(--border)) 27%, transparent);
+  }
+  .filter-chip:not(.active):hover {
+    opacity: 0.75;
+    background: color-mix(in srgb, var(--chip-color, var(--text-dim)) 7%, transparent);
+    color: color-mix(in srgb, var(--chip-color, var(--text-dim)) 53%, transparent);
+    border-color: color-mix(in srgb, var(--chip-color, var(--border)) 13%, transparent);
   }
 
   @media print {

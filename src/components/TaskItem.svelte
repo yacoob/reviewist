@@ -1,7 +1,6 @@
 <script lang="ts">
   import type { DedupedTask } from '../lib/types';
 
-
   interface Props {
     task: DedupedTask;
   }

@@ -16,22 +16,13 @@ async function api(url: string, token: string): Promise<unknown> {
 export async function fetchProjects(
   token: string,
 ): Promise<Record<string, Project>> {
-  const data = (await api(
+  const list = (await api(
     'https://api.todoist.com/api/v1/projects',
     token,
-  )) as Record<string, unknown>[];
-  const list = Array.isArray(data)
-    ? data
-    : ((data as Record<string, unknown>).results as Record<string, unknown>[]) ??
-      data;
+  )) as { id: string; name: string; color?: string }[];
   const map: Record<string, Project> = {};
-  if (Array.isArray(list)) {
-    for (const p of list) {
-      map[p.id as string] = {
-        name: p.name as string,
-        color: (p.color as string) || null,
-      };
-    }
+  for (const p of list) {
+    map[p.id] = { name: p.name, color: p.color || null };
   }
   return map;
 }
@@ -62,23 +53,17 @@ export async function fetchEventTasks(
   until: string,
 ): Promise<CompletedTask[]> {
   const filter = `#${EVENT_PROJECT_NAME} & due after: ${since} & due before: ${nextDay(until)} & uncompletable`;
-  const data = await api(
+  const data = (await api(
     `https://api.todoist.com/api/v1/tasks/filter?query=${encodeURIComponent(filter)}`,
     token,
-  );
-  const items = Array.isArray(data)
-    ? data
-    : ((data as Record<string, unknown>).results as unknown[]) ?? [];
-  return (items as Record<string, unknown>[]).map((t) => {
-    const due = t.due as Record<string, string>;
-    return {
-      content: t.content as string,
-      completed_at: due.date,
-      project_id: t.project_id as string,
-      section_id: (t.section_id as string) || '',
-      task_id: t.id as string,
-      id: `event-${t.id}`,
-      labels: t.labels as string[] | undefined,
-    };
-  });
+  )) as { results: { id: string; content: string; project_id: string; section_id?: string; labels?: string[]; due: { date: string } }[] };
+  return data.results.map((t) => ({
+    content: t.content,
+    completed_at: t.due.date,
+    project_id: t.project_id,
+    section_id: t.section_id || '',
+    task_id: t.id,
+    id: `event-${t.id}`,
+    labels: t.labels,
+  }));
 }

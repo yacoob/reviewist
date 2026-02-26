@@ -1,15 +1,7 @@
 <script lang="ts">
-  import type { CompletedTask, DedupedTask, Project } from '../lib/types';
-  import { formatDayLabel } from '../lib/dates';
-  import { TODOIST_COLORS } from '../lib/colors';
+  import type { CompletedTask, Project } from '../lib/types';
+  import { groupTasksByDay } from '../lib/tasks';
   import TaskItem from './TaskItem.svelte';
-
-  interface ProjectGroup {
-    projectId: string;
-    hex: string | null;
-    unfiled: boolean;
-    tasks: DedupedTask[];
-  }
 
   interface Props {
     tasks: CompletedTask[];
@@ -23,65 +15,7 @@
     tasks.filter((t) => !excludedProjects.includes(t.project_id)),
   );
 
-  let days = $derived.by(() => {
-    const grouped: Record<string, CompletedTask[]> = {};
-    for (const t of filteredTasks) {
-      const date = (t.completed_at || '').split('T')[0] || 'Unknown';
-      (grouped[date] ??= []).push(t);
-    }
-
-    return Object.keys(grouped)
-      .sort()
-      .reverse()
-      .map((day) => {
-        const sorted = grouped[day].sort((a, b) =>
-          (a.completed_at || '').localeCompare(b.completed_at || ''),
-        );
-
-        const deduped: DedupedTask[] = [];
-        const seen: Record<string, DedupedTask> = {};
-        for (const t of sorted) {
-          const key = (t.content || '') + '||' + (t.project_id || '');
-          if (seen[key]) {
-            seen[key].count++;
-            seen[key].allTimes.push(t.completed_at || '');
-            if ((t.completed_at || '') > (seen[key].completed_at || '')) {
-              seen[key].completed_at = t.completed_at;
-            }
-          } else {
-            const entry: DedupedTask = { ...t, count: 1, allTimes: [t.completed_at || ''] };
-            seen[key] = entry;
-            deduped.push(entry);
-          }
-        }
-
-        // Sub-group by project, sorted alphabetically by project name
-        const byProject: Record<string, DedupedTask[]> = {};
-        for (const t of deduped) {
-          const pid = t.project_id || '';
-          (byProject[pid] ??= []).push(t);
-        }
-
-        const projectGroups: ProjectGroup[] = Object.entries(byProject)
-          .map(([pid, tasks]) => {
-            const proj = projects[pid];
-            const hex = proj?.color ? TODOIST_COLORS[proj.color] || null : null;
-            const unfiled = !proj?.name;
-            return { projectId: pid, hex, unfiled, tasks };
-          })
-          .sort((a, b) => {
-            // Unfiled always last
-            if (a.unfiled !== b.unfiled) return a.unfiled ? 1 : -1;
-            const nameA = (projects[a.projectId]?.name || '').toLowerCase();
-            const nameB = (projects[b.projectId]?.name || '').toLowerCase();
-            return nameA.localeCompare(nameB);
-          });
-
-        const label = day === 'Unknown' ? 'Unknown date' : formatDayLabel(day);
-        const taskCount = deduped.length;
-        return { day, label, taskCount, projectGroups };
-      });
-  });
+  let days = $derived(groupTasksByDay(filteredTasks, projects));
 </script>
 
 {#if filteredTasks.length === 0}
@@ -103,11 +37,7 @@
       {#each projectGroups as group (group.projectId)}
         <div
           class="project-box"
-          style={group.unfiled
-            ? 'border-left-color:#DC4C3E;background:#DC4C3E1a'
-            : group.hex
-              ? `border-left-color:${group.hex};background:${group.hex}1a`
-              : ''}
+          style={group.hex ? `--box-color:${group.hex}` : ''}
         >
           {#if group.unfiled}
             <div class="unfiled-header">unfiled</div>
@@ -141,7 +71,8 @@
     font-size: 0.65rem;
   }
   .project-box {
-    border-left: 3px solid var(--border);
+    border-left: 3px solid var(--box-color, var(--border));
+    background: color-mix(in srgb, var(--box-color, transparent) 10%, transparent);
     padding-left: 0.75rem;
     margin-bottom: 0.5rem;
     border-radius: 0 4px 4px 0;
@@ -150,7 +81,7 @@
     font-family: 'JetBrains Mono', monospace;
     font-size: 0.6rem;
     font-weight: 600;
-    color: #DC4C3E;
+    color: var(--box-color);
     padding-top: 0.25rem;
     padding-bottom: 0.15rem;
   }
