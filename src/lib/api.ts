@@ -4,7 +4,7 @@
 import type { CompletedTask, Project } from './types';
 
 /** Todoist project name for non-task entries (events, notes). Used in filter queries. */
-export const EVENT_PROJECT_NAME = 'Aside';
+const EVENT_PROJECT_NAME = 'Aside';
 
 async function api(url: string, token: string): Promise<unknown> {
   const res = await fetch(url, {

@@ -106,7 +106,6 @@
       {#each projectGroups as group (group.projectId)}
         <div
           class="project-box"
-          class:unfiled={group.unfiled}
           style={group.unfiled
             ? 'border-left-color:#DC4C3E;background:#DC4C3E11'
             : group.hex

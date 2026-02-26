@@ -114,7 +114,7 @@
       setupVisible = true;
       return;
     }
-    const cached = await loadCache(since, until);
+    const cached = loadCache(since, until);
     if (cached) {
       allTasks = cached.tasks;
       projects = cached.projects;
