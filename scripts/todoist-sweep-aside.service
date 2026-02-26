@@ -1,0 +1,10 @@
+[Unit]
+Description=Close uncompletable Todoist tasks from Aside project
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+DynamicUser=true
+EnvironmentFile=/etc/todoist-sweep-aside.env
+ExecStart=/usr/local/bin/todoist-sweep-aside.sh

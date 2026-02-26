@@ -1,0 +1,9 @@
+[Unit]
+Description=Run todoist-sweep-aside at 23:15/25/35/45/55 daily
+
+[Timer]
+OnCalendar=*-*-* 23:15,25,35,45,55:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target
