@@ -1,6 +1,3 @@
-<!-- ABOUTME: Collapsible settings panel with API token input, date range pickers, and action buttons. -->
-<!-- ABOUTME: Handles token entry, date range selection, fetch trigger, and token forget. -->
-
 <script lang="ts">
   interface Props {
     visible: boolean;

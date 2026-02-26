@@ -1,6 +1,3 @@
-<!-- ABOUTME: App title bar with refresh time indicator and settings toggle button. -->
-<!-- ABOUTME: Shows relative time since last data fetch. -->
-
 <script lang="ts">
   interface Props {
     lastFetchTime: number | null;

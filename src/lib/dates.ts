@@ -1,6 +1,3 @@
-// ABOUTME: Date formatting helpers for task display.
-// ABOUTME: Formats dates as ISO strings and human-readable day labels.
-
 export function fmtDate(d: Date): string {
   return d.toISOString().split('T')[0];
 }

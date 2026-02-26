@@ -1,6 +1,3 @@
-<!-- ABOUTME: Displays status messages (error, info, loading) below the setup panel. -->
-<!-- ABOUTME: Conditionally renders based on status type. -->
-
 <script lang="ts">
   import type { StatusType } from '../lib/types';
 

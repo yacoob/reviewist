@@ -1,6 +1,3 @@
-<!-- ABOUTME: Root component with all shared state, fetch orchestration, and layout. -->
-<!-- ABOUTME: Manages auto-refresh, project exclusion, and composes all child components. -->
-
 <script lang="ts">
   import { onMount } from 'svelte';
   import type { CompletedTask, Project, StatusType } from './lib/types';

@@ -1,6 +1,3 @@
-<!-- ABOUTME: Renders a single completed task with check mark, content, labels, project chip, and time. -->
-<!-- ABOUTME: Handles dedup count badge and timestamp tooltip for recurring tasks. -->
-
 <script lang="ts">
   import type { DedupedTask } from '../lib/types';
 

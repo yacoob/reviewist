@@ -1,6 +1,3 @@
-// ABOUTME: Todoist API client for fetching projects, completed tasks, and event tasks.
-// ABOUTME: Uses v1 endpoints: /tasks/completed, /tasks/filter, /projects.
-
 import type { CompletedTask, Project } from './types';
 
 /** Todoist project name for non-task entries (events, notes). Used in filter queries. */

@@ -1,6 +1,3 @@
-// ABOUTME: localStorage cache for completed tasks and projects.
-// ABOUTME: Enables instant render from cached data on page load.
-
 import type { CompletedTask, Project } from './types';
 
 interface CachedData {

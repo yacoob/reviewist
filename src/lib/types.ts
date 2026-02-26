@@ -1,6 +1,3 @@
-// ABOUTME: TypeScript interfaces for Todoist API responses and internal state.
-// ABOUTME: Covers completed tasks, projects, and display-ready task entries.
-
 export interface CompletedTask {
   content: string;
   completed_at: string;

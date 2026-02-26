@@ -1,6 +1,3 @@
-// ABOUTME: ESLint flat config for Svelte 5 + TypeScript.
-// ABOUTME: Combines typescript-eslint and eslint-plugin-svelte rules.
-
 import eslint from '@eslint/js';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';

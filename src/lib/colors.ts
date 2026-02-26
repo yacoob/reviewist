@@ -1,6 +1,3 @@
-// ABOUTME: Todoist color name to hex mapping.
-// ABOUTME: From https://developer.todoist.com/api/v1#tag/Colors
-
 export const TODOIST_COLORS: Record<string, string> = {
   berry_red: '#B8255F',
   red: '#DC4C3E',

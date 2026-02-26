@@ -1,6 +1,3 @@
-<!-- ABOUTME: Project filter toggles with Todoist colors for including/excluding projects. -->
-<!-- ABOUTME: Active chips show project color, inactive chips are muted with colored hover. -->
-
 <script lang="ts">
   import type { CompletedTask, Project } from '../lib/types';
   import { TODOIST_COLORS } from '../lib/colors';

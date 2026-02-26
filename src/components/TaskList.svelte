@@ -1,6 +1,3 @@
-<!-- ABOUTME: Groups completed tasks by day, deduplicates recurring completions, and renders TaskItems. -->
-<!-- ABOUTME: Shows empty state when no tasks match the current filters. -->
-
 <script lang="ts">
   import type { CompletedTask, DedupedTask, Project } from '../lib/types';
   import { formatDayLabel } from '../lib/dates';
