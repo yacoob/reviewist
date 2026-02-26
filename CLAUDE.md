@@ -115,8 +115,9 @@ reviewist/
 │   │   ├── types.ts        # Interfaces for API responses + internal state
 │   │   ├── api.ts          # Todoist fetch functions (projects, completed tasks, event tasks)
 │   │   ├── colors.ts       # TODOIST_COLORS map
-│   │   ├── cache.ts        # IndexedDB cache for instant render from stale data
+│   │   ├── cache.ts        # localStorage cache for instant render from stale data
 │   │   ├── dates.ts        # fmtDate, formatDayLabel
+│   │   ├── tasks.ts        # Grouping, dedup, project sorting logic
 │   │   └── storage.ts      # localStorage helpers (token, excluded projects, refresh interval)
 │   └── components/
 │       ├── Header.svelte       # Title, refresh indicator, settings toggle
@@ -149,7 +150,12 @@ reviewist/
 - `mise run dev` / `npm run dev` — Vite dev server with hot reload
 - `mise run build` / `npm run build` — produces `dist/index.html` (single file, works from `file://`)
 - `mise run check` / `npm run check` — svelte-check type diagnostics
+- `mise run test` / `npm test` — vitest unit tests
 - `mise run lint` / `npm run lint` — ESLint with Svelte + TypeScript rules
+
+### Testing
+
+Tests live alongside source files (`src/lib/*.test.ts`), using vitest with jsdom environment. Non-trivial `src/lib/` logic should have test coverage. When modifying existing code, verify existing tests still pass. When adding new logic, add tests if the code is non-trivial and feasible to test (pure functions, state logic — not Svelte components or fetch wrappers).
 
 ## Improvement Roadmap
 
