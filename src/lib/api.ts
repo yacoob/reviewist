@@ -16,12 +16,12 @@ async function api(url: string, token: string): Promise<unknown> {
 export async function fetchProjects(
   token: string,
 ): Promise<Record<string, Project>> {
-  const list = (await api(
+  const data = (await api(
     'https://api.todoist.com/api/v1/projects',
     token,
-  )) as { id: string; name: string; color?: string }[];
+  )) as { results: { id: string; name: string; color?: string }[] };
   const map: Record<string, Project> = {};
-  for (const p of list) {
+  for (const p of data.results) {
     map[p.id] = { name: p.name, color: p.color || null };
   }
   return map;
