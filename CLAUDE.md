@@ -168,6 +168,7 @@ reviewist/
 - **Markdown export** — copy button that dumps current view as markdown, for pasting into a journal or Obsidian
 - **Webhook-driven mode** — Todoist POSTs completion events to an endpoint. Tiny receiver (n8n webhook node) builds local SQLite DB of completions. Eliminates pagination, enables historical analytics, survives API changes
 - **Offline/PWA** — service worker for offline access to last-fetched data
+- **Completion date correction** — CLI script to backdate a task's completion timestamp. Todoist's REST `/close` endpoint doesn't accept a date, and `item_complete` via Sync API is a no-op on already-completed tasks. The workaround is to batch `item_uncomplete` + `item_complete` (with `date_completed`) in a single Sync API request. Useful for tasks completed just after midnight that should belong to the previous day
 
 ## Todoist Feature Notes
 

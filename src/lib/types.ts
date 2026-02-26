@@ -9,7 +9,6 @@ export interface CompletedTask {
   task_id: string;
   id: string;
   labels?: string[];
-  is_event?: boolean;
 }
 
 export interface Project {

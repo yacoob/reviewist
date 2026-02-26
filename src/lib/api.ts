@@ -82,7 +82,6 @@ export async function fetchEventTasks(
       task_id: t.id as string,
       id: `event-${t.id}`,
       labels: t.labels as string[] | undefined,
-      is_event: true,
     };
   });
 }

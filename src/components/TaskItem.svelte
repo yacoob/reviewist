@@ -13,7 +13,8 @@
   let { task, project }: Props = $props();
 
   let rawContent = $derived(task.content || task.task_id || '?');
-  let strippedContent = $derived(task.is_event ? rawContent.replace(/^\*\s+/, '') : rawContent);
+  let isEvent = $derived(rawContent.startsWith('* '));
+  let strippedContent = $derived(isEvent ? rawContent.replace(/^\*\s+/, '') : rawContent);
   let inlineLabels = $derived((strippedContent.match(/@\w+/g) || []).map((l: string) => l.slice(1)));
   let content = $derived(strippedContent.replace(/@\w+/g, '').replace(/\s{2,}/g, ' ').trim());
   let labels = $derived([...new Set([...inlineLabels, ...(task.labels || [])])]);
@@ -32,7 +33,7 @@
     class="task-time"
     class:has-tooltip={task.count > 1 && !!latestTime}
     title={task.count > 1 ? allTimesFormatted : undefined}>{latestTime}</span>
-  {#if task.is_event}
+  {#if isEvent}
     <span class="task-check event-bullet" style={projHex ? `color:${projHex}` : ''}>●</span>
   {:else}
     <span class="task-check">✓</span>
