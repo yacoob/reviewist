@@ -4,4 +4,7 @@ import { viteSingleFile } from 'vite-plugin-singlefile';
 
 export default defineConfig({
   plugins: [svelte(), viteSingleFile()],
+  test: {
+    environment: 'jsdom',
+  },
 });

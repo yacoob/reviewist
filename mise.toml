@@ -13,6 +13,10 @@ description = "Build single-file production HTML"
 run = "npx svelte-check --tsconfig ./tsconfig.json"
 description = "Run svelte-check type diagnostics"
 
+[tasks.test]
+run = "npx vitest run"
+description = "Run unit tests"
+
 [tasks.lint]
 run = "npx eslint src/"
 description = "Run ESLint on source files"
