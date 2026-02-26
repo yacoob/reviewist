@@ -50,8 +50,8 @@ describe('groupTasksByDay', () => {
 
   it('deduplicates recurring tasks by content+project_id', () => {
     const tasks = [
-      task({ id: 'c1', content: 'Feed cats', completed_at: '2026-02-20T08:00:00Z' }),
-      task({ id: 'c2', content: 'Feed cats', completed_at: '2026-02-20T18:00:00Z' }),
+      task({ id: 'c1', content: 'Wax the cactus', completed_at: '2026-02-20T08:00:00Z' }),
+      task({ id: 'c2', content: 'Wax the cactus', completed_at: '2026-02-20T18:00:00Z' }),
     ];
     const result = groupTasksByDay(tasks, projects);
     const deduped = result[0].projectGroups[0].tasks;

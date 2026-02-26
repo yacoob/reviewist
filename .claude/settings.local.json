@@ -4,7 +4,8 @@
       "Bash(npx eslint:*)",
       "Bash(npm run:*)",
       "WebFetch(domain:developer.todoist.com)",
-      "Bash(npx vercel:*)"
+      "Bash(npx vercel:*)",
+      "Bash(npm test:*)"
     ]
   }
 }
