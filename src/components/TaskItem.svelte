@@ -4,6 +4,7 @@
 <script lang="ts">
   import type { DedupedTask } from '../lib/types';
 
+
   interface Props {
     task: DedupedTask;
   }
@@ -28,18 +29,16 @@
     class:has-tooltip={task.count > 1 && !!latestTime}
     title={task.count > 1 ? allTimesFormatted : undefined}>{latestTime}</span>
   <span class="task-check">{isEvent ? '' : '✓'}</span>
-  <span class="task-content">{content}</span>
+  <span class="task-content">{content} {#if task.count > 1}<span class="task-count">(×{task.count})</span>{/if}</span>
   <div class="task-meta">
-    {#if task.count > 1}
-      <span class="task-count">×{task.count}</span>
-    {/if}
     {#if labels.length}
       <span class="task-labels">
         {#each labels as label (label)}
           <a
             href="https://app.todoist.com/app/label/{encodeURIComponent(label)}"
             target="_blank"
-            class="task-label">@{label}</a>
+            class="task-label"
+>{label}</a>
         {/each}
       </span>
     {/if}
@@ -51,7 +50,7 @@
     display: flex;
     align-items: center;
     gap: 0.6rem;
-    padding: 0.45rem 0;
+    padding: 0.45rem 0.5rem 0.45rem 0;
     font-size: 0.85rem;
   }
   .task-check {
@@ -70,14 +69,16 @@
   :global(a).task-label {
     font-family: 'JetBrains Mono', monospace;
     font-size: 0.6rem;
-    color: var(--text-muted);
-    background: var(--surface-2);
-    padding: 0.15rem 0.45rem;
-    border-radius: 3px;
+    background: transparent;
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
     white-space: nowrap;
     text-decoration: none;
+    transition: border-color 0.15s;
   }
-  :global(a).task-label:hover { text-decoration: underline; }
+  :global(a).task-label:hover { border-color: var(--text-dim); }
   .task-time {
     font-family: 'JetBrains Mono', monospace;
     font-size: 0.6rem;
@@ -93,11 +94,8 @@
   }
   .task-count {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 0.6rem;
+    font-size: 0.75em;
     color: var(--text-muted);
-    background: var(--surface-3);
-    padding: 0.1rem 0.35rem;
-    border-radius: 3px;
   }
 
   @media (max-width: 600px) {

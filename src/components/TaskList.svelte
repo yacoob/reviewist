@@ -107,9 +107,9 @@
         <div
           class="project-box"
           style={group.unfiled
-            ? 'border-left-color:#DC4C3E;background:#DC4C3E11'
+            ? 'border-left-color:#DC4C3E;background:#DC4C3E1a'
             : group.hex
-              ? `border-left-color:${group.hex};background:${group.hex}11`
+              ? `border-left-color:${group.hex};background:${group.hex}1a`
               : ''}
         >
           {#if group.unfiled}
