@@ -4,7 +4,15 @@
 <script lang="ts">
   import type { CompletedTask, DedupedTask, Project } from '../lib/types';
   import { formatDayLabel } from '../lib/dates';
+  import { TODOIST_COLORS } from '../lib/colors';
   import TaskItem from './TaskItem.svelte';
+
+  interface ProjectGroup {
+    projectId: string;
+    hex: string | null;
+    unfiled: boolean;
+    tasks: DedupedTask[];
+  }
 
   interface Props {
     tasks: CompletedTask[];
@@ -50,8 +58,31 @@
           }
         }
 
+        // Sub-group by project, sorted alphabetically by project name
+        const byProject: Record<string, DedupedTask[]> = {};
+        for (const t of deduped) {
+          const pid = t.project_id || '';
+          (byProject[pid] ??= []).push(t);
+        }
+
+        const projectGroups: ProjectGroup[] = Object.entries(byProject)
+          .map(([pid, tasks]) => {
+            const proj = projects[pid];
+            const hex = proj?.color ? TODOIST_COLORS[proj.color] || null : null;
+            const unfiled = !proj?.name;
+            return { projectId: pid, hex, unfiled, tasks };
+          })
+          .sort((a, b) => {
+            // Unfiled always last
+            if (a.unfiled !== b.unfiled) return a.unfiled ? 1 : -1;
+            const nameA = (projects[a.projectId]?.name || '').toLowerCase();
+            const nameB = (projects[b.projectId]?.name || '').toLowerCase();
+            return nameA.localeCompare(nameB);
+          });
+
         const label = day === 'Unknown' ? 'Unknown date' : formatDayLabel(day);
-        return { day, label, tasks: deduped };
+        const taskCount = deduped.length;
+        return { day, label, taskCount, projectGroups };
       });
   });
 </script>
@@ -66,14 +97,29 @@
     {/if}
   </div>
 {:else}
-  {#each days as { day, label, tasks: dayTasks } (day)}
+  {#each days as { day, label, taskCount, projectGroups } (day)}
     <div class="day-group">
       <div class="day-header">
         <span>{label}</span>
-        <span class="day-count">{dayTasks.length}</span>
+        <span class="day-count">{taskCount}</span>
       </div>
-      {#each dayTasks as task (task.id + task.completed_at)}
-        <TaskItem {task} project={projects[task.project_id]} />
+      {#each projectGroups as group (group.projectId)}
+        <div
+          class="project-box"
+          class:unfiled={group.unfiled}
+          style={group.unfiled
+            ? 'border-left-color:#DC4C3E;background:#DC4C3E11'
+            : group.hex
+              ? `border-left-color:${group.hex};background:${group.hex}11`
+              : ''}
+        >
+          {#if group.unfiled}
+            <div class="unfiled-header">unfiled</div>
+          {/if}
+          {#each group.tasks as task (task.id + task.completed_at)}
+            <TaskItem {task} />
+          {/each}
+        </div>
       {/each}
     </div>
   {/each}
@@ -97,6 +143,20 @@
     font-weight: 400;
     color: var(--text-muted);
     font-size: 0.65rem;
+  }
+  .project-box {
+    border-left: 3px solid var(--border);
+    padding-left: 0.75rem;
+    margin-bottom: 0.5rem;
+    border-radius: 0 4px 4px 0;
+  }
+  .unfiled-header {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    font-weight: 600;
+    color: #DC4C3E;
+    padding-top: 0.25rem;
+    padding-bottom: 0.15rem;
   }
   .empty {
     text-align: center;

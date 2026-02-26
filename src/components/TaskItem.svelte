@@ -2,15 +2,13 @@
 <!-- ABOUTME: Handles dedup count badge and timestamp tooltip for recurring tasks. -->
 
 <script lang="ts">
-  import type { DedupedTask, Project } from '../lib/types';
-  import { TODOIST_COLORS } from '../lib/colors';
+  import type { DedupedTask } from '../lib/types';
 
   interface Props {
     task: DedupedTask;
-    project: Project | undefined;
   }
 
-  let { task, project }: Props = $props();
+  let { task }: Props = $props();
 
   let rawContent = $derived(task.content || task.task_id || '?');
   let isEvent = $derived(rawContent.startsWith('* '));
@@ -19,10 +17,6 @@
   let content = $derived(strippedContent.replace(/@\w+/g, '').replace(/\s{2,}/g, ' ').trim());
   let labels = $derived([...new Set([...inlineLabels, ...(task.labels || [])])]);
   let latestTime = $derived((task.completed_at || '').split('T')[1]?.slice(0, 5) || '');
-  let projHex = $derived(project?.color ? (TODOIST_COLORS[project.color] || null) : null);
-  let projStyle = $derived(
-    projHex ? `background:${projHex}22;color:${projHex};border:1px solid ${projHex}44` : '',
-  );
   let allTimesFormatted = $derived(
     task.allTimes.map((ts: string) => ts.split('T')[1]?.slice(0, 5) || '?').sort().join(', '),
   );
@@ -33,11 +27,7 @@
     class="task-time"
     class:has-tooltip={task.count > 1 && !!latestTime}
     title={task.count > 1 ? allTimesFormatted : undefined}>{latestTime}</span>
-  {#if isEvent}
-    <span class="task-check event-bullet" style={projHex ? `color:${projHex}` : ''}>●</span>
-  {:else}
-    <span class="task-check">✓</span>
-  {/if}
+  <span class="task-check">{isEvent ? '' : '✓'}</span>
   <span class="task-content">{content}</span>
   <div class="task-meta">
     {#if task.count > 1}
@@ -52,13 +42,6 @@
             class="task-label">@{label}</a>
         {/each}
       </span>
-    {/if}
-    {#if project?.name}
-      <a
-        href="https://app.todoist.com/app/project/{task.project_id}"
-        target="_blank"
-        class="task-project"
-        style={projStyle}>{project.name}</a>
     {/if}
   </div>
 </div>
@@ -84,7 +67,6 @@
     flex-shrink: 0;
   }
   .task-labels { display: inline-flex; gap: 0.25rem; }
-  :global(a).task-project,
   :global(a).task-label {
     font-family: 'JetBrains Mono', monospace;
     font-size: 0.6rem;
@@ -95,7 +77,6 @@
     white-space: nowrap;
     text-decoration: none;
   }
-  :global(a).task-project:hover,
   :global(a).task-label:hover { text-decoration: underline; }
   .task-time {
     font-family: 'JetBrains Mono', monospace;
@@ -125,7 +106,6 @@
   }
 
   @media print {
-    :global(a).task-project { background: #eee; color: #555; }
     .task-check { color: #333; }
   }
 </style>

@@ -19,7 +19,11 @@
     for (const t of tasks) {
       counts[t.project_id] = (counts[t.project_id] || 0) + 1;
     }
-    return Object.entries(counts).sort((a, b) => b[1] - a[1]);
+    return Object.entries(counts).sort((a, b) => {
+      const nameA = (projects[a[0]]?.name || '').toLowerCase();
+      const nameB = (projects[b[0]]?.name || '').toLowerCase();
+      return nameA.localeCompare(nameB);
+    });
   });
 
   function chipStyle(pid: string): string {

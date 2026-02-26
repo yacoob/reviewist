@@ -64,7 +64,7 @@ export async function fetchEventTasks(
   since: string,
   until: string,
 ): Promise<CompletedTask[]> {
-  const filter = `#${EVENT_PROJECT_NAME} & due after: ${since} & due before: ${nextDay(until)}`;
+  const filter = `#${EVENT_PROJECT_NAME} & due after: ${since} & due before: ${nextDay(until)} & uncompletable`;
   const data = await api(
     `https://api.todoist.com/api/v1/tasks/filter?query=${encodeURIComponent(filter)}`,
     token,
