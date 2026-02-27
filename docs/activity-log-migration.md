@@ -256,8 +256,9 @@ freshly-fetched ones.
 
 - The bare `/tasks/completed` endpoint is still working and is the primary data
   source.
-- The Todoist SDK is installed and exposed on `window.todoist` for console
-  experimentation.
-- The SDK is usable for non-completed-task APIs (projects, sections, labels, etc.).
+- The Todoist SDK (`@doist/todoist-api-typescript`) is installed as a dev dependency
+  and exposed on `window.todoist` for console experimentation in dev mode only.
+  **Do not use the SDK in production code** — it bundles `undici` (a Node.js HTTP
+  client), adding ~600 KB to the build. The app uses direct `fetch()` calls instead.
 - Implementation will proceed in two stages: first stateless fetch-and-reconcile (no
   new storage), then optional local event cache if performance warrants it.
