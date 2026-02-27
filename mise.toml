@@ -1,3 +1,6 @@
+[hooks]
+enter = "jj config set --repo 'revset-aliases.\"immutable_heads()\"' 'present(trunk()) & committer_date(before:\"7 days ago\")'"
+
 [tools]
 node = "22"
 
