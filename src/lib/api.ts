@@ -1,7 +1,7 @@
-import type { CompletedTask, Project } from './types';
+import type { ActivityEvent, Project } from './types';
 
-/** Todoist project name for non-task entries (events, notes). Used in filter queries. */
-const EVENT_PROJECT_NAME = 'Aside';
+const BASE = 'https://api.todoist.com/api/v1';
+const PAGE_LIMIT = 100;
 
 async function api(url: string, token: string): Promise<unknown> {
   const res = await fetch(url, {
@@ -17,7 +17,7 @@ export async function fetchProjects(
   token: string,
 ): Promise<Record<string, Project>> {
   const data = (await api(
-    'https://api.todoist.com/api/v1/projects',
+    `${BASE}/projects`,
     token,
   )) as { results: { id: string; name: string; color?: string }[] };
   const map: Record<string, Project> = {};
@@ -27,43 +27,41 @@ export async function fetchProjects(
   return map;
 }
 
-export async function fetchCompletedTasks(
+/**
+ * Fetch activity events for completed/uncompleted/deleted items,
+ * paging through all results. Returns events in API order (newest first).
+ */
+export async function fetchActivityEvents(
   token: string,
   since: string,
   until: string,
-): Promise<CompletedTask[]> {
-  const sinceISO = new Date(since + 'T00:00:00').toISOString();
-  const untilISO = new Date(until + 'T23:59:59').toISOString();
-  const data = (await api(
-    `https://api.todoist.com/api/v1/tasks/completed?since=${sinceISO}&until=${untilISO}&limit=200`,
-    token,
-  )) as Record<string, unknown>;
-  return (data.items ?? []) as CompletedTask[];
-}
+): Promise<ActivityEvent[]> {
+  const dayAfterUntil = new Date(until + 'T00:00:00');
+  dayAfterUntil.setDate(dayAfterUntil.getDate() + 1);
+  const dateTo = dayAfterUntil.toISOString().slice(0, 10);
 
-function nextDay(dateStr: string): string {
-  const d = new Date(dateStr + 'T00:00:00');
-  d.setDate(d.getDate() + 1);
-  return d.toISOString().slice(0, 10);
-}
+  const allEvents: ActivityEvent[] = [];
+  let cursor: string | undefined;
 
-export async function fetchEventTasks(
-  token: string,
-  since: string,
-  until: string,
-): Promise<CompletedTask[]> {
-  const filter = `#${EVENT_PROJECT_NAME} & due after: ${since} & due before: ${nextDay(until)} & uncompletable`;
-  const data = (await api(
-    `https://api.todoist.com/api/v1/tasks/filter?query=${encodeURIComponent(filter)}`,
-    token,
-  )) as { results: { id: string; content: string; project_id: string; section_id?: string; labels?: string[]; due: { date: string } }[] };
-  return data.results.map((t) => ({
-    content: t.content,
-    completed_at: t.due.date,
-    project_id: t.project_id,
-    section_id: t.section_id || '',
-    task_id: t.id,
-    id: `event-${t.id}`,
-    labels: t.labels,
-  }));
+  while (true) {
+    const params = new URLSearchParams({
+      date_from: since,
+      date_to: dateTo,
+      object_event_types: JSON.stringify(['item:completed', 'item:uncompleted']),
+      limit: String(PAGE_LIMIT),
+    });
+    if (cursor) params.set('cursor', cursor);
+
+    const data = (await api(
+      `${BASE}/activities?${params}`,
+      token,
+    )) as { results: ActivityEvent[]; next_cursor?: string };
+
+    allEvents.push(...(data.results ?? []));
+
+    if (!data.next_cursor) break;
+    cursor = data.next_cursor;
+  }
+
+  return allEvents;
 }

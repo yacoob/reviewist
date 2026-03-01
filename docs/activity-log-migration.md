@@ -262,3 +262,9 @@ freshly-fetched ones.
   client), adding ~600 KB to the build. The app uses direct `fetch()` calls instead.
 - Implementation will proceed in two stages: first stateless fetch-and-reconcile (no
   new storage), then optional local event cache if performance warrants it.
+
+## Testing Notes
+
+- When creating test tasks in Todoist for API experimentation, always delete them
+  while uncompleted. Completing a test task and then deleting it leaves orphaned
+  `completed` events in the activity log that will show up in Reviewist forever.
