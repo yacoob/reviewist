@@ -6,7 +6,8 @@ interface CachedData {
   fetchedAt: number;
 }
 
-const KEY_PREFIX = 'reviewist_cache_';
+const KEY_PREFIX = 'reviewist_cache_v2_';
+const OLD_KEY_PREFIX = 'reviewist_cache_';
 const STALE_THRESHOLD = 7 * 86400000; // 7 days
 
 function cacheKey(since: string, until: string): string {
@@ -40,7 +41,7 @@ export function clearCache(): void {
   const toRemove: string[] = [];
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
-    if (key?.startsWith(KEY_PREFIX)) toRemove.push(key);
+    if (key?.startsWith(KEY_PREFIX) || key?.startsWith(OLD_KEY_PREFIX)) toRemove.push(key);
   }
   toRemove.forEach((key) => localStorage.removeItem(key));
 }

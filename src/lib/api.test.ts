@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { fetchProjects, fetchCompletedTasks, fetchEventTasks } from './api';
+import { fetchProjects, fetchActivityEvents } from './api';
+import type { ActivityEvent } from './types';
 
 function mockFetch(body: unknown, status = 200) {
   return vi.fn().mockResolvedValue({
@@ -58,131 +59,114 @@ describe('fetchProjects', () => {
   });
 });
 
-describe('fetchCompletedTasks', () => {
-  it('unwraps { items } from response', async () => {
-    const items = [
-      {
-        content: 'Teach the goldfish to yodel',
-        completed_at: '2026-02-20T10:00:00Z',
-        project_id: 'p1',
-        section_id: 's1',
-        task_id: 't1',
-        id: 'c1',
-      },
-      {
-        content: 'Iron the lawn',
-        completed_at: '2026-02-20T18:00:00Z',
-        project_id: 'p2',
-        section_id: '',
-        task_id: 't2',
-        id: 'c2',
-      },
-    ];
-    globalThis.fetch = mockFetch({ items });
+describe('fetchActivityEvents', () => {
+  const sampleEvent: ActivityEvent = {
+    id: 12345,
+    event_date: '2026-02-20T10:00:00.000000Z',
+    event_type: 'completed',
+    object_id: 'abc123',
+    object_type: 'item',
+    parent_project_id: 'proj1',
+    parent_item_id: null,
+    initiator_id: 'user1',
+    extra_data: { content: 'Buy milk' },
+  };
 
-    const result = await fetchCompletedTasks('tok', '2026-02-19', '2026-02-20');
-    expect(result).toEqual(items);
+  it('returns events from a single page', async () => {
+    globalThis.fetch = mockFetch({ results: [sampleEvent] });
+
+    const result = await fetchActivityEvents('tok', '2026-02-19', '2026-02-20');
+    expect(result).toEqual([sampleEvent]);
   });
 
-  it('returns empty array when items is missing', async () => {
+  it('pages through multiple pages using next_cursor', async () => {
+    const event1 = { ...sampleEvent, object_id: 'a1' };
+    const event2 = { ...sampleEvent, object_id: 'a2' };
+    const event3 = { ...sampleEvent, object_id: 'a3' };
+
+    let callCount = 0;
+    globalThis.fetch = vi.fn().mockImplementation(() => {
+      callCount++;
+      if (callCount === 1) {
+        return Promise.resolve({
+          ok: true, status: 200,
+          json: () => Promise.resolve({ results: [event1, event2], next_cursor: 'cur1' }),
+          text: () => Promise.resolve(''),
+        });
+      }
+      return Promise.resolve({
+        ok: true, status: 200,
+        json: () => Promise.resolve({ results: [event3] }),
+        text: () => Promise.resolve(''),
+      });
+    });
+
+    const result = await fetchActivityEvents('tok', '2026-02-19', '2026-02-20');
+    expect(result).toEqual([event1, event2, event3]);
+    expect(callCount).toBe(2);
+
+    // Second call should include cursor parameter
+    const secondUrl = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[1][0] as string;
+    expect(secondUrl).toContain('cursor=cur1');
+  });
+
+  it('returns empty array when results is missing', async () => {
     globalThis.fetch = mockFetch({});
 
-    const result = await fetchCompletedTasks('tok', '2026-02-19', '2026-02-20');
+    const result = await fetchActivityEvents('tok', '2026-02-19', '2026-02-20');
     expect(result).toEqual([]);
   });
 
-  it('builds correct URL with ISO date boundaries', async () => {
-    const fn = mockFetch({ items: [] });
+  it('builds correct URL with activity endpoint and parameters', async () => {
+    const fn = mockFetch({ results: [] });
     globalThis.fetch = fn;
 
-    await fetchCompletedTasks('tok', '2026-02-01', '2026-02-07');
+    await fetchActivityEvents('tok', '2026-02-01', '2026-02-07');
 
     const url = fn.mock.calls[0][0] as string;
-    expect(url).toContain('api.todoist.com/api/v1/tasks/completed');
-    // since should be start of day
-    expect(url).toContain('since=' + new Date('2026-02-01T00:00:00').toISOString());
-    // until should be end of day
-    expect(url).toContain('until=' + new Date('2026-02-07T23:59:59').toISOString());
-    expect(url).toContain('limit=200');
+    expect(url).toContain('api.todoist.com/api/v1/activities');
+    expect(url).toContain('date_from=2026-02-01');
+    // date_to is day after until
+    expect(url).toContain('date_to=2026-02-08');
+    expect(url).toContain('object_event_types=' + encodeURIComponent(JSON.stringify(['item:completed', 'item:uncompleted'])));
+    expect(url).toContain('limit=100');
+  });
+
+  it('sends Authorization header with token', async () => {
+    const fn = mockFetch({ results: [] });
+    globalThis.fetch = fn;
+
+    await fetchActivityEvents('tok', '2026-02-01', '2026-02-07');
+
+    expect(fn).toHaveBeenCalledWith(
+      expect.stringContaining('activities'),
+      { headers: { Authorization: 'Bearer tok' } },
+    );
   });
 
   it('throws on HTTP error', async () => {
     globalThis.fetch = mockFetch('Unauthorized', 401);
-    await expect(fetchCompletedTasks('bad', '2026-02-01', '2026-02-07')).rejects.toThrow('HTTP 401');
+    await expect(fetchActivityEvents('bad', '2026-02-01', '2026-02-07')).rejects.toThrow('HTTP 401');
   });
-});
 
-describe('fetchEventTasks', () => {
-  it('unwraps { results } and maps to CompletedTask shape', async () => {
-    globalThis.fetch = mockFetch({
-      results: [
-        {
-          id: 'e1',
-          content: '* Raccoons achieve sentience',
-          project_id: 'p_aside',
-          section_id: 'sec1',
-          labels: ['cryptozoology'],
-          due: { date: '2026-02-20' },
-        },
-        {
-          id: 'e2',
-          content: '* Trebuchet maintenance window',
-          project_id: 'p_aside',
-          labels: [],
-          due: { date: '2026-02-21' },
-        },
-      ],
+  it('throws on HTTP error mid-pagination', async () => {
+    let callCount = 0;
+    globalThis.fetch = vi.fn().mockImplementation(() => {
+      callCount++;
+      if (callCount === 1) {
+        return Promise.resolve({
+          ok: true, status: 200,
+          json: () => Promise.resolve({ results: [sampleEvent], next_cursor: 'cur1' }),
+          text: () => Promise.resolve(''),
+        });
+      }
+      return Promise.resolve({
+        ok: false, status: 500,
+        json: () => Promise.resolve({}),
+        text: () => Promise.resolve('Internal Server Error'),
+      });
     });
 
-    const result = await fetchEventTasks('tok', '2026-02-19', '2026-02-21');
-
-    expect(result).toEqual([
-      {
-        content: '* Raccoons achieve sentience',
-        completed_at: '2026-02-20',
-        project_id: 'p_aside',
-        section_id: 'sec1',
-        task_id: 'e1',
-        id: 'event-e1',
-        labels: ['cryptozoology'],
-      },
-      {
-        content: '* Trebuchet maintenance window',
-        completed_at: '2026-02-21',
-        project_id: 'p_aside',
-        section_id: '',
-        task_id: 'e2',
-        id: 'event-e2',
-        labels: [],
-      },
-    ]);
-  });
-
-  it('builds filter query with Aside project and correct date range', async () => {
-    const fn = mockFetch({ results: [] });
-    globalThis.fetch = fn;
-
-    await fetchEventTasks('tok', '2026-02-19', '2026-02-25');
-
-    const url = fn.mock.calls[0][0] as string;
-    const queryParam = decodeURIComponent(url.split('query=')[1]);
-    expect(queryParam).toBe('#Aside & due after: 2026-02-19 & due before: 2026-02-26 & uncompletable');
-  });
-
-  it('computes next day correctly for until boundary', async () => {
-    const fn = mockFetch({ results: [] });
-    globalThis.fetch = fn;
-
-    await fetchEventTasks('tok', '2026-02-28', '2026-03-01');
-
-    const url = fn.mock.calls[0][0] as string;
-    const queryParam = decodeURIComponent(url.split('query=')[1]);
-    // March 1 + 1 = March 2
-    expect(queryParam).toContain('due before: 2026-03-02');
-  });
-
-  it('throws on HTTP error', async () => {
-    globalThis.fetch = mockFetch('Server error', 500);
-    await expect(fetchEventTasks('bad', '2026-02-01', '2026-02-07')).rejects.toThrow('HTTP 500');
+    await expect(fetchActivityEvents('tok', '2026-02-01', '2026-02-07')).rejects.toThrow('HTTP 500');
   });
 });
