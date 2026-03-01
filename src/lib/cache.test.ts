@@ -43,7 +43,7 @@ describe('cache', () => {
 
     vi.setSystemTime(new Date('2026-02-09T00:00:00Z'));
     expect(loadCache('2026-01-01', '2026-01-31')).toBeNull();
-    expect(localStorage.getItem('reviewist_cache_2026-01-01|2026-01-31')).toBeNull();
+    expect(localStorage.getItem('reviewist_cache_v2_2026-01-01|2026-01-31')).toBeNull();
   });
 
   it('clears only cache keys', () => {
@@ -54,8 +54,16 @@ describe('cache', () => {
     expect(loadCache('2026-02-01', '2026-02-28')).toBeNull();
   });
 
+  it('clears old-prefix cache keys too', () => {
+    localStorage.setItem('reviewist_cache_2026-02-01|2026-02-28', 'old-data');
+    saveCache('2026-03-01', '2026-03-31', data);
+    clearCache();
+    expect(localStorage.getItem('reviewist_cache_2026-02-01|2026-02-28')).toBeNull();
+    expect(loadCache('2026-03-01', '2026-03-31')).toBeNull();
+  });
+
   it('returns null for malformed JSON', () => {
-    localStorage.setItem('reviewist_cache_2026-02-01|2026-02-28', '{bad json');
+    localStorage.setItem('reviewist_cache_v2_2026-02-01|2026-02-28', '{bad json');
     expect(loadCache('2026-02-01', '2026-02-28')).toBeNull();
   });
 });
