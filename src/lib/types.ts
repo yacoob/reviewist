@@ -2,10 +2,8 @@ export interface CompletedTask {
   content: string;
   completed_at: string;
   project_id: string;
-  section_id: string;
   task_id: string;
   id: string;
-  labels?: string[];
 }
 
 export interface Project {
@@ -20,7 +18,7 @@ export interface DedupedTask extends CompletedTask {
 
 export type StatusType = 'error' | 'info' | 'loading' | null;
 
-export type ActivityEventType = 'completed' | 'uncompleted' | 'deleted';
+export type ActivityEventType = 'completed' | 'uncompleted';
 
 export interface ActivityEvent {
   id: unknown; // Large number, loses precision as JSON float — do not use as key

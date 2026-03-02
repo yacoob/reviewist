@@ -28,7 +28,7 @@
     return parts;
   })());
 
-  let labels = $derived([...new Set([...inlineLabels, ...(task.labels || [])])]);
+  let labels = $derived(inlineLabels);
   let latestTime = $derived((task.completed_at || '').split('T')[1]?.slice(0, 5) || '');
   let allTimesFormatted = $derived(
     task.allTimes.map((ts: string) => ts.split('T')[1]?.slice(0, 5) || '?').sort().join(', '),
@@ -46,7 +46,7 @@
     href="https://app.todoist.com/app/task/{task.task_id}"
     target="_blank">{latestTime}</a>
   <span class="task-check">{isEvent ? '' : '✓'}</span>
-  <span class="task-content">{#each contentParts as part}{#if part.type === 'link'}<a class="task-inline-link" href={part.href} target="_blank">{part.text}</a>{:else}{part.text}{/if}{/each}{#if task.count > 1}{' '}<span class="task-count">(×{task.count})</span>{/if}</span>
+  <span class="task-content">{#each contentParts as part, i (i)}{#if part.type === 'link'}<a class="task-inline-link" href={part.href} target="_blank">{part.text}</a>{:else}{part.text}{/if}{/each}{#if task.count > 1}&nbsp;<span class="task-count">(×{task.count})</span>{/if}</span>
   <div class="task-meta">
     {#if labels.length}
       <span class="task-labels">
