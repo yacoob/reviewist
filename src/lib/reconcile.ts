@@ -45,7 +45,6 @@ export function reconcile(events: ActivityEvent[]): CompletedTask[] {
         content: e.extra_data?.content ?? '',
         completed_at: e.event_date,
         project_id: e.parent_project_id ?? '',
-        section_id: '',
         task_id: e.object_id,
       });
     }

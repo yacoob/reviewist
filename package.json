@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "check": "svelte-check --tsconfig ./tsconfig.json",
     "test": "vitest run",
-    "lint": "eslint src/"
+    "lint": "eslint src/",
+    "validate": "vitest run && svelte-check --tsconfig ./tsconfig.json && eslint src/"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

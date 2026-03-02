@@ -1,11 +1,10 @@
 <script lang="ts">
   interface Props {
     lastFetchTime: number | null;
-    fromCache: boolean;
     onToggleSetup: () => void;
   }
 
-  let { lastFetchTime, fromCache, onToggleSetup }: Props = $props();
+  let { lastFetchTime, onToggleSetup }: Props = $props();
 
   let indicatorText = $state('');
 
@@ -19,7 +18,6 @@
     if (s < 5) text = 'just now';
     else if (s < 60) text = `${s}s ago`;
     else text = `${Math.floor(s / 60)}m ago`;
-    if (fromCache) text += ' · cached';
     indicatorText = text;
   }
 
