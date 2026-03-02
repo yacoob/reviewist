@@ -36,3 +36,8 @@ export function loadRefreshInterval(): number {
 export function saveRefreshInterval(ms: number): void {
   localStorage.setItem(REFRESH_KEY, String(ms));
 }
+
+import blocklistRaw from '../blocklist.txt?raw';
+export const BLOCKLIST: ReadonlySet<string> = new Set(
+  blocklistRaw.split('\n').map(s => s.trim()).filter(Boolean),
+);

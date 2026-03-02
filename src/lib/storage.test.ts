@@ -7,6 +7,7 @@ import {
   saveExcludedProjects,
   loadRefreshInterval,
   saveRefreshInterval,
+  BLOCKLIST,
 } from './storage';
 
 beforeEach(() => {
@@ -43,6 +44,29 @@ describe('excluded projects', () => {
   it('returns empty array for malformed JSON', () => {
     localStorage.setItem('reviewist_excluded', 'not-json');
     expect(loadExcludedProjects()).toEqual([]);
+  });
+});
+
+describe('blocklist', () => {
+  it('is a non-empty set parsed from blocklist.txt', () => {
+    expect(BLOCKLIST).toBeInstanceOf(Set);
+    expect(BLOCKLIST.size).toBeGreaterThan(0);
+  });
+
+  it('contains only non-empty trimmed strings', () => {
+    for (const id of BLOCKLIST) {
+      expect(id).toBe(id.trim());
+      expect(id.length).toBeGreaterThan(0);
+    }
+  });
+
+  it('contains known blocklisted IDs', () => {
+    expect(BLOCKLIST.has('69gqQwRw52w2V2Qg')).toBe(true);
+    expect(BLOCKLIST.has('6g5Mrp4hpm786fp5')).toBe(true);
+  });
+
+  it('does not contain IDs not in the file', () => {
+    expect(BLOCKLIST.has('nonexistent_id')).toBe(false);
   });
 });
 
