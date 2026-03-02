@@ -152,6 +152,7 @@ reviewist/
 - `mise run check` / `npm run check` — svelte-check type diagnostics
 - `mise run test` / `npm test` — vitest unit tests
 - `mise run lint` / `npm run lint` — ESLint with Svelte + TypeScript rules
+- `npm run validate` — runs tests, type checks, and lint in sequence. **Use this to verify changes.**
 
 ### Testing
 
