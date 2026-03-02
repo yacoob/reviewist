@@ -254,17 +254,32 @@ freshly-fetched ones.
 
 ## Current State
 
-- The bare `/tasks/completed` endpoint is still working and is the primary data
-  source.
-- The Todoist SDK (`@doist/todoist-api-typescript`) is installed as a dev dependency
-  and exposed on `window.todoist` for console experimentation in dev mode only.
-  **Do not use the SDK in production code** — it bundles `undici` (a Node.js HTTP
-  client), adding ~600 KB to the build. The app uses direct `fetch()` calls instead.
-- Implementation will proceed in two stages: first stateless fetch-and-reconcile (no
-  new storage), then optional local event cache if performance warrants it.
+**Stage 1 (stateless fetch-and-reconcile) is implemented.**
+
+- The activity log (`/api/v1/activities`) is the primary data source. The old
+  `/tasks/completed` endpoint is no longer used.
+- Fetches `completed` and `uncompleted` events, pages through all results, then
+  reconciles them in memory to produce `CompletedTask` objects for display.
+- A build-time **blocklist** (`src/blocklist.txt`, one task ID per line) filters
+  out known-bad task IDs before reconciliation. All events for blocklisted
+  `object_id`s are dropped. The blocklist is embedded via Vite's `?raw` import —
+  no runtime management UI, edit the file and rebuild.
+- The old localStorage cache (`cache.ts`) has been removed. No caching layer
+  exists currently — every page load fetches fresh from the API.
+- The Todoist SDK (`@doist/todoist-api-typescript`) is installed as a dev
+  dependency and exposed on `window.todoist` for console experimentation in dev
+  mode only. **Do not use the SDK in production code** — it bundles `undici` (a
+  Node.js HTTP client), adding ~600 KB to the build. The app uses direct
+  `fetch()` calls instead.
+- `CompletedTask` no longer carries `section_id` (activity log doesn't provide
+  it) or `labels` (parsed from content at render time).
 
 ## Testing Notes
 
+- `npm run validate` runs vitest, svelte-check, and eslint in sequence.
+- `src/lib/reconcile.test.ts` covers the reconciliation logic: uncomplete
+  cancellation, recurring task handling, out-of-order events, and blocklist
+  filtering.
 - When creating test tasks in Todoist for API experimentation, always delete them
   while uncompleted. Completing a test task and then deleting it leaves orphaned
   `completed` events in the activity log that will show up in Reviewist forever.

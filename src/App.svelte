@@ -10,7 +10,6 @@
     loadRefreshInterval, saveRefreshInterval,
     BLOCKLIST,
   } from './lib/storage';
-  import { clearCache } from './lib/cache';
   import Header from './components/Header.svelte';
   import SetupPanel from './components/SetupPanel.svelte';
   import StatusMessage from './components/StatusMessage.svelte';
@@ -25,7 +24,6 @@
   let statusType: StatusType = $state(null);
   let setupVisible = $state(false);
   let fetching = $state(false);
-  let fromCache = $state(false);
   let refreshInterval = $state(loadRefreshInterval());
 
   let token = $state(loadToken());
@@ -63,7 +61,6 @@
       const filtered = events.filter(e => !BLOCKLIST.has(e.object_id));
       allTasks = reconcile(filtered);
       lastFetchTime = Date.now();
-      fromCache = false;
       clearStatus();
     } catch (e) {
       if (!silent) {
@@ -85,7 +82,6 @@
 
   function handleForget() {
     forgetStoredToken();
-    clearCache();
     token = '';
     refreshInterval = 0;
     showStatus('Token forgotten', 'info');
@@ -124,7 +120,7 @@
 </script>
 
 <div class="container">
-  <Header {lastFetchTime} {fromCache} onToggleSetup={() => (setupVisible = !setupVisible)} />
+  <Header {lastFetchTime} onToggleSetup={() => (setupVisible = !setupVisible)} />
   <SetupPanel
     visible={setupVisible}
     bind:token

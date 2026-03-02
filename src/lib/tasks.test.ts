@@ -8,7 +8,6 @@ function task(overrides: Partial<CompletedTask> = {}): CompletedTask {
     content: 'Test task',
     completed_at: '2026-02-20T10:00:00Z',
     project_id: 'p1',
-    section_id: 's1',
     task_id: 't1',
     id: 'c1',
     ...overrides,

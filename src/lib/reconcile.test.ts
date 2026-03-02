@@ -31,7 +31,6 @@ describe('reconcile', () => {
       content: 'Test task',
       completed_at: '2026-02-20T10:00:00Z',
       project_id: 'proj1',
-      section_id: '',
       task_id: 'task1',
     });
   });
@@ -80,15 +79,6 @@ describe('reconcile', () => {
       ev({ event_date: '2026-02-20T10:00:00Z' }),
     ]);
     expect(result).toHaveLength(0);
-  });
-
-  it('ignores deleted events (they are pre-filtered by caller)', () => {
-    const result = reconcile([
-      ev({ event_date: '2026-02-20T10:00:00Z' }),
-      ev({ event_type: 'deleted', event_date: '2026-02-20T12:00:00Z' }),
-    ]);
-    // deleted is not 'completed', so only the completed event maps to a task
-    expect(result).toHaveLength(1);
   });
 
   it('groups events by object_id independently', () => {
