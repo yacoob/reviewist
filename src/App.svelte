@@ -24,12 +24,10 @@
 
   async function handleFetch() {
     store.saveToken();
-    showStatus('Fetching...', 'loading');
+    clearStatus();
     const { error } = await store.fetch();
     if (error) {
       showStatus(error, 'error');
-    } else {
-      clearStatus();
     }
     setupVisible = false;
   }
@@ -37,6 +35,7 @@
   function handleForget() {
     store.forgetToken();
     showStatus('Token forgotten', 'info');
+    setTimeout(clearStatus, 3000);
   }
 
   function handleRefreshChange(ms: number) {
@@ -52,12 +51,9 @@
       setupVisible = true;
       return;
     }
-    showStatus('Fetching...', 'loading');
     const { error } = await store.fetch();
     if (error) {
       showStatus(error, 'error');
-    } else {
-      clearStatus();
     }
   });
 
@@ -73,7 +69,7 @@
 </script>
 
 <div class="container">
-  <Header lastFetchTime={store.lastFetchTime} onToggleSetup={() => (setupVisible = !setupVisible)} />
+  <Header lastFetchTime={store.lastFetchTime} fetching={store.fetching} onToggleSetup={() => (setupVisible = !setupVisible)} />
   <SetupPanel
     visible={setupVisible}
     bind:token={store.token}

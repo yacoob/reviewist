@@ -1,10 +1,11 @@
 <script lang="ts">
   interface Props {
     lastFetchTime: number | null;
+    fetching: boolean;
     onToggleSetup: () => void;
   }
 
-  let { lastFetchTime, onToggleSetup }: Props = $props();
+  let { lastFetchTime, fetching, onToggleSetup }: Props = $props();
 
   let indicatorText = $state('');
 
@@ -33,6 +34,9 @@
 <header>
   <h1>reviewist</h1>
   <div class="header-right">
+    {#if fetching}
+      <span class="fetch-spinner" title="Fetching...">↻</span>
+    {/if}
     {#if indicatorText}
       <span class="refresh-indicator">{indicatorText}</span>
     {/if}
@@ -58,6 +62,15 @@
     display: flex;
     gap: 0.75rem;
     align-items: center;
+  }
+  .fetch-spinner {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    animation: spin 1s linear infinite;
+    display: inline-block;
+  }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
   }
   .refresh-indicator {
     font-family: 'JetBrains Mono', monospace;
