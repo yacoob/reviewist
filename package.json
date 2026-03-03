@@ -10,7 +10,8 @@
     "check": "svelte-check --tsconfig ./tsconfig.json",
     "test": "vitest run",
     "lint": "eslint src/",
-    "validate": "vitest run && svelte-check --tsconfig ./tsconfig.json && eslint src/"
+    "validate": "vitest run && svelte-check --tsconfig ./tsconfig.json && eslint src/",
+    "bench": "tsx src/lib/reconcile.bench.ts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -22,6 +23,7 @@
     "jsdom": "^28.1.0",
     "svelte": "^5.53.3",
     "svelte-check": "^4.4.3",
+    "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.56.1",
     "vercel": "^46",
