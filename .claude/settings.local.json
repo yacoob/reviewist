@@ -7,9 +7,12 @@
       "Bash(npx vercel:*)",
       "Bash(npm test:*)",
       "Bash(jj st:*)",
-      "mcp__svelte__svelte-autofixer"
+      "mcp__svelte__svelte-autofixer",
+      "mcp__todoist__find-completed-tasks",
+      "mcp__todoist__find-tasks-by-date"
     ]
   },
+  "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "svelte"
   ]
