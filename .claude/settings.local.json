@@ -15,7 +15,8 @@
       "WebSearch",
       "Bash(jj diff:*)",
       "Bash(jj log:*)",
-      "Bash(jj commit:*)"
+      "Bash(jj commit:*)",
+      "Bash(ls:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
