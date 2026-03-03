@@ -11,7 +11,11 @@
       "mcp__todoist__find-completed-tasks",
       "mcp__todoist__find-tasks-by-date",
       "mcp__todoist__find-activity",
-      "Bash(npx tsx:*)"
+      "Bash(npx tsx:*)",
+      "WebSearch",
+      "Bash(jj diff:*)",
+      "Bash(jj log:*)",
+      "Bash(jj commit:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
