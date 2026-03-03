@@ -8,38 +8,28 @@ import type { ActivityEvent, CompletedTask } from './types';
  * to CompletedTask objects for display.
  */
 export function reconcile(events: ActivityEvent[]): CompletedTask[] {
-  // Group by object_id
+  // Sort all events chronologically
+  events.sort((a, b) => a.event_date < b.event_date ? -1 : a.event_date > b.event_date ? 1 : 0);
+
+  // Single walk: coalesce events per task, uncompletes pop the latest
   const byId = new Map<string, ActivityEvent[]>();
   for (const e of events) {
-    const group = byId.get(e.object_id) ?? [];
-    group.push(e);
-    byId.set(e.object_id, group);
+    if (e.event_type === 'completed') {
+      let list = byId.get(e.object_id);
+      if (!list) {
+        list = [];
+        byId.set(e.object_id, list);
+      }
+      list.push(e);
+    } else if (e.event_type === 'uncompleted') {
+      byId.get(e.object_id)?.pop();
+    }
   }
 
+  // Flatten and map to CompletedTask
   const tasks: CompletedTask[] = [];
-
-  for (const [, group] of byId) {
-    // Sort chronologically within each group
-    group.sort((a, b) => a.event_date.localeCompare(b.event_date));
-
-    // Walk through: uncompleted cancels nearest preceding completed
-    const surviving: ActivityEvent[] = [];
-    for (const e of group) {
-      if (e.event_type === 'uncompleted') {
-        for (let i = surviving.length - 1; i >= 0; i--) {
-          if (surviving[i].event_type === 'completed') {
-            surviving.splice(i, 1);
-            break;
-          }
-        }
-      } else {
-        surviving.push(e);
-      }
-    }
-
-    // Map surviving completed events to CompletedTask
-    for (const e of surviving) {
-      if (e.event_type !== 'completed') continue;
+  for (const list of byId.values()) {
+    for (const e of list) {
       tasks.push({
         id: e.object_id + '|' + e.event_date,
         content: e.extra_data?.content ?? '',
@@ -49,6 +39,5 @@ export function reconcile(events: ActivityEvent[]): CompletedTask[] {
       });
     }
   }
-
   return tasks;
 }
