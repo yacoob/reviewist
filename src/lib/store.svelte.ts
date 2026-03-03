@@ -8,6 +8,7 @@ import {
   loadRefreshInterval, saveRefreshInterval,
   BLOCKLIST,
 } from './storage';
+import { loadCachedState, saveCachedState, clearCachedState } from './cache';
 
 let token = $state(loadToken());
 let since = $state(fmtDate(new Date(Date.now() - 42 * 86400000)));
@@ -20,28 +21,55 @@ let lastFetchTime: number | null = $state(null);
 let fetching = $state(false);
 
 async function doFetch(silent = false): Promise<{ error?: string }> {
+  const t0 = performance.now();
+  const log = (msg: string) => console.log('[store] %s (%.1fms)', msg, performance.now() - t0);
+
   if (!token || !since || !until) {
     return { error: 'Enter your API token' };
   }
 
   if (!silent) fetching = true;
+  log('fetch start' + (silent ? ' (silent)' : ''));
+
+  let hadCache = false;
+  try {
+    const cached = await loadCachedState();
+    if (cached) {
+      hadCache = true;
+      allTasks = cached.tasks;
+      projects = cached.projects;
+      lastFetchTime = cached.fetchedAt;
+      log(`cache hit: ${cached.tasks.length} tasks, fetched ${new Date(cached.fetchedAt).toLocaleTimeString()}`);
+    } else {
+      log('cache miss');
+    }
+  } catch {
+    log('cache load error');
+  }
 
   try {
+    log('API fetch start');
     const [projMap, events] = await Promise.all([
       fetchProjects(token),
       fetchActivityEvents(token, since, until),
     ]);
+    log(`API done: ${Object.keys(projMap).length} projects, ${events.length} events`);
 
     projects = projMap;
     const filtered = events.filter(e => !BLOCKLIST.has(e.object_id));
     allTasks = reconcile(filtered);
     lastFetchTime = Date.now();
+    log(`reconciled: ${allTasks.length} tasks`);
+    saveCachedState($state.snapshot(allTasks), $state.snapshot(projects));
     return {};
   } catch (e) {
+    log(`API error: ${(e as Error).message}`);
+    if (hadCache) return {};
     if (!silent) allTasks = [];
     return { error: (e as Error).message };
   } finally {
     fetching = false;
+    log('fetch complete');
   }
 }
 
@@ -51,8 +79,11 @@ function saveTokenValue() {
 
 function forgetToken() {
   clearStoredToken();
+  clearCachedState();
   token = '';
-  refreshInterval = 0;
+  allTasks = [];
+  projects = {};
+  lastFetchTime = null;
 }
 
 function setRefreshInterval(ms: number) {
