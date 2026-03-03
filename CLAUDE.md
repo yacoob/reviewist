@@ -149,12 +149,12 @@ reviewist/
 
 ### Dev Workflow
 
-- `npm run dev` — Vite dev server with hot reload
-- `npm run build` — produces `dist/index.html` (single file, works from `file://`)
-- `npm run check` — svelte-check type diagnostics
-- `npm test` — vitest unit tests
-- `npm run lint` — ESLint with Svelte + TypeScript rules
-- `npm run validate` — runs tests, type checks, and lint in sequence. **Use this to verify changes.**
+- `pnpm dev` — Vite dev server with hot reload
+- `pnpm build` — produces `dist/index.html` (single file, works from `file://`)
+- `pnpm check` — svelte-check type diagnostics
+- `pnpm test` — vitest unit tests
+- `pnpm lint` — ESLint with Svelte + TypeScript rules
+- `pnpm validate` — runs tests, type checks, and lint in sequence. **Use this to verify changes.**
 
 ### Testing
 
@@ -189,7 +189,7 @@ Tests live alongside source files (`src/lib/*.test.ts`), using vitest with jsdom
 
 ## Testing Notes
 
-- `npm run validate` runs vitest, svelte-check, and eslint in sequence.
+- `pnpm validate` runs vitest, svelte-check, and eslint in sequence.
 - `src/lib/reconcile.test.ts` covers the reconciliation logic: uncomplete
   cancellation, recurring task handling, out-of-order events, and blocklist
   filtering.
