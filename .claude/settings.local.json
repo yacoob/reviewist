@@ -6,7 +6,11 @@
       "WebFetch(domain:developer.todoist.com)",
       "Bash(npx vercel:*)",
       "Bash(npm test:*)",
-      "Bash(jj st:*)"
+      "Bash(jj st:*)",
+      "mcp__svelte__svelte-autofixer"
     ]
-  }
+  },
+  "enabledMcpjsonServers": [
+    "svelte"
+  ]
 }
