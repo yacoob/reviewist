@@ -61,7 +61,7 @@
   $effect(() => {
     if (!store.token || store.refreshInterval === 0) return;
     const id = setInterval(async () => {
-      const { error } = await store.fetch(true);
+      const { error } = await store.fetch();
       if (error) showStatus(error, 'error');
     }, store.refreshInterval);
     return () => clearInterval(id);
@@ -69,7 +69,7 @@
 </script>
 
 <div class="container">
-  <Header lastFetchTime={store.lastFetchTime} fetching={store.fetching} onToggleSetup={() => (setupVisible = !setupVisible)} />
+  <Header lastFetchTime={store.lastFetchTime} fetching={store.fetching} onToggleSetup={() => (setupVisible = !setupVisible)} onRefresh={handleFetch} />
   <SetupPanel
     visible={setupVisible}
     bind:token={store.token}

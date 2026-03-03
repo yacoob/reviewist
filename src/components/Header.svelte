@@ -3,9 +3,10 @@
     lastFetchTime: number | null;
     fetching: boolean;
     onToggleSetup: () => void;
+    onRefresh: () => void;
   }
 
-  let { lastFetchTime, fetching, onToggleSetup }: Props = $props();
+  let { lastFetchTime, fetching, onToggleSetup, onRefresh }: Props = $props();
 
   let indicatorText = $state('');
 
@@ -38,7 +39,7 @@
       <span class="fetch-spinner" title="Fetching...">↻</span>
     {/if}
     {#if indicatorText}
-      <span class="refresh-indicator">{indicatorText}</span>
+      <button class="refresh-indicator" onclick={onRefresh} disabled={fetching} title="Click to refresh">{indicatorText}</button>
     {/if}
     <button class="btn-icon" onclick={onToggleSetup} title="Settings">⚙</button>
   </div>
@@ -76,7 +77,14 @@
     font-family: 'JetBrains Mono', monospace;
     font-size: 0.6rem;
     color: var(--text-muted);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    transition: color 0.15s;
   }
+  .refresh-indicator:hover { color: var(--text); }
+  .refresh-indicator:disabled { cursor: default; }
   .btn-icon {
     background: transparent;
     border: 1px solid var(--border);
