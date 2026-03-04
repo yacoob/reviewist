@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { fmtDate } from '../lib/dates';
+
   interface Props {
     lastFetchTime: number | null;
     fetching: boolean;
@@ -7,6 +9,8 @@
   }
 
   let { lastFetchTime, fetching, onToggleSetup, onRefresh }: Props = $props();
+
+  const since = $derived(fmtDate(new Date(Date.now() - 42 * 86400000)));
 
   let indicatorText = $state('');
 
@@ -33,7 +37,10 @@
 </script>
 
 <header>
-  <h1>reviewist</h1>
+  <div class="header-left">
+    <h1>reviewist //</h1>
+    <span class="date-range">since {since}</span>
+  </div>
   <div class="header-right">
     {#if fetching}
       <span class="fetch-spinner" title="Fetching...">↻</span>
@@ -85,6 +92,17 @@
   }
   .refresh-indicator:hover { color: var(--text); }
   .refresh-indicator:disabled { cursor: default; }
+  .header-left {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+  }
+  .date-range {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
   .btn-icon {
     background: transparent;
     border: 1px solid var(--border);

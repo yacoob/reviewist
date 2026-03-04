@@ -16,7 +16,8 @@
       "Bash(jj diff:*)",
       "Bash(jj log:*)",
       "Bash(jj commit:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(pnpm validate:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

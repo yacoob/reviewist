@@ -2,8 +2,6 @@
   interface Props {
     visible: boolean;
     token: string;
-    since: string;
-    until: string;
     fetching: boolean;
     refreshInterval: number;
     onFetch: () => void;
@@ -11,7 +9,7 @@
     onRefreshChange: (ms: number) => void;
   }
 
-  let { visible, token = $bindable(), since = $bindable(), until = $bindable(), fetching, refreshInterval, onFetch, onForget, onRefreshChange }: Props = $props();
+  let { visible, token = $bindable(), fetching, refreshInterval, onFetch, onForget, onRefreshChange }: Props = $props();
 </script>
 
 {#if visible}
@@ -25,14 +23,6 @@
           bind:value={token}
           placeholder="Settings → Integrations → Developer"
         />
-      </div>
-      <div class="field">
-        <label for="since-input">From</label>
-        <input id="since-input" type="date" bind:value={since} />
-      </div>
-      <div class="field">
-        <label for="until-input">To</label>
-        <input id="until-input" type="date" bind:value={until} />
       </div>
       <div class="field">
         <label for="refresh-select">Auto-refresh</label>

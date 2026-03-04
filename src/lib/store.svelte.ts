@@ -11,8 +11,6 @@ import {
 import { loadCachedState, saveCachedState, clearCachedState } from './cache';
 
 let token = $state(loadToken());
-let since = $state(fmtDate(new Date(Date.now() - 42 * 86400000)));
-let until = $state(fmtDate(new Date()));
 let refreshInterval = $state(loadRefreshInterval());
 let excludedProjects: string[] = $state(loadExcludedProjects());
 let allTasks: CompletedTask[] = $state([]);
@@ -24,9 +22,12 @@ async function doFetch(): Promise<{ error?: string }> {
   const t0 = performance.now();
   const log = (msg: string) => console.log('[store] %s (%.1fms)', msg, performance.now() - t0);
 
-  if (!token || !since || !until) {
+  if (!token) {
     return { error: 'Enter your API token' };
   }
+
+  const since = fmtDate(new Date(Date.now() - 42 * 86400000));
+  const until = fmtDate(new Date());
 
   fetching = true;
   log('fetch start');
@@ -117,10 +118,6 @@ function toggleProject(pid: string) {
 export const store = {
   get token() { return token; },
   set token(v: string) { token = v; },
-  get since() { return since; },
-  set since(v: string) { since = v; },
-  get until() { return until; },
-  set until(v: string) { until = v; },
   get refreshInterval() { return refreshInterval; },
   get excludedProjects() { return excludedProjects; },
   get allTasks() { return allTasks; },

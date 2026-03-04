@@ -73,8 +73,6 @@
   <SetupPanel
     visible={setupVisible}
     bind:token={store.token}
-    bind:since={store.since}
-    bind:until={store.until}
     fetching={store.fetching}
     refreshInterval={store.refreshInterval}
     onFetch={handleFetch}
