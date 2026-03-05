@@ -1,13 +1,13 @@
-import type { CompletedTask, Project } from './types';
+import type { ActivityEvent, Project } from './types';
 
 export interface CachedState {
-  tasks: CompletedTask[];
+  events: ActivityEvent[];
   projects: Record<string, Project>;
   fetchedAt: number;
 }
 
 const DB_NAME = 'reviewist';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const STORE_NAME = 'cache';
 const CACHE_KEY = 'state';
 
@@ -16,9 +16,11 @@ function openDB(): Promise<IDBDatabase> {
     const req = indexedDB.open(DB_NAME, DB_VERSION);
     req.onupgradeneeded = () => {
       const db = req.result;
-      if (!db.objectStoreNames.contains(STORE_NAME)) {
-        db.createObjectStore(STORE_NAME, { keyPath: 'key' });
+      // Drop v1 store if upgrading
+      if (db.objectStoreNames.contains(STORE_NAME)) {
+        db.deleteObjectStore(STORE_NAME);
       }
+      db.createObjectStore(STORE_NAME, { keyPath: 'key' });
     };
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
@@ -48,12 +50,12 @@ export async function loadCachedState(): Promise<CachedState | null> {
       return null;
     }
 
-    const tasks = row.tasks as CompletedTask[];
+    const events = row.events as ActivityEvent[];
     const projects = row.projects as Record<string, Project>;
     const fetchedAt = row.fetchedAt as number;
 
     // Structural check
-    if (!Array.isArray(tasks) || tasks.length !== row.taskCount) {
+    if (!Array.isArray(events) || events.length !== row.eventCount) {
       console.warn('[cache] structural check failed, discarding');
       return null;
     }
@@ -61,15 +63,15 @@ export async function loadCachedState(): Promise<CachedState | null> {
     // Content hash check
     const expected = row.hash as string;
     if (expected) {
-      const actual = await computeHash(JSON.stringify(tasks));
+      const actual = await computeHash(JSON.stringify(events));
       if (actual !== expected) {
         console.warn('[cache] hash check failed, discarding');
         return null;
       }
     }
 
-    const result = { tasks, projects, fetchedAt };
-    console.log(`[cache] load: ${(performance.now() - t0).toFixed(1)}ms, ${tasks.length} tasks`);
+    const result = { events, projects, fetchedAt };
+    console.log(`[cache] load: ${(performance.now() - t0).toFixed(1)}ms, ${events.length} events`);
     return result;
   } catch (e) {
     console.error('[cache] load failed:', e);
@@ -77,28 +79,28 @@ export async function loadCachedState(): Promise<CachedState | null> {
   }
 }
 
-export async function saveCachedState(tasks: CompletedTask[], projects: Record<string, Project>): Promise<void> {
+export async function saveCachedState(events: ActivityEvent[], projects: Record<string, Project>): Promise<void> {
   try {
     const t0 = performance.now();
     const db = await openDB();
     console.log(`[cache] save openDB: ${(performance.now() - t0).toFixed(1)}ms`);
-    const hash = await computeHash(JSON.stringify(tasks));
+    const hash = await computeHash(JSON.stringify(events));
     await new Promise<void>((resolve, reject) => {
       const tx = db.transaction(STORE_NAME, 'readwrite');
       const store = tx.objectStore(STORE_NAME);
       const req = store.put({
         key: CACHE_KEY,
-        tasks,
+        events,
         projects,
         fetchedAt: Date.now(),
-        taskCount: tasks.length,
+        eventCount: events.length,
         hash,
       });
       req.onerror = () => reject(req.error);
       tx.oncomplete = () => resolve();
       tx.onerror = () => reject(tx.error);
     });
-    console.log(`[cache] save: ${(performance.now() - t0).toFixed(1)}ms, ${tasks.length} tasks`);
+    console.log(`[cache] save: ${(performance.now() - t0).toFixed(1)}ms, ${events.length} events`);
   } catch (e) {
     console.error('[cache] save failed:', e);
   }
