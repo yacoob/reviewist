@@ -43,7 +43,7 @@
   </div>
   <div class="header-right">
     {#if fetching}
-      <span class="fetch-spinner" title="Fetching...">↻</span>
+      <span class="fetch-spinner" title="Fetching..."></span>
     {/if}
     {#if indicatorText}
       <button class="refresh-indicator" onclick={onRefresh} disabled={fetching} title="Click to refresh">{indicatorText}</button>
@@ -72,10 +72,12 @@
     align-items: center;
   }
   .fetch-spinner {
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    animation: spin 1s linear infinite;
-    display: inline-block;
+    width: 0.75rem;
+    height: 0.75rem;
+    border: 2px solid var(--border);
+    border-top-color: var(--text-muted);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
   }
   @keyframes spin {
     to { transform: rotate(360deg); }
