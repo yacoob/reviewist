@@ -1,15 +1,19 @@
 import 'fake-indexeddb/auto';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { loadCachedState, saveCachedState, clearCachedState } from './cache';
-import type { CompletedTask, Project } from './types';
+import type { ActivityEvent, Project } from './types';
 
-function task(id: string): CompletedTask {
+function event(objectId: string, type: 'completed' | 'uncompleted' = 'completed'): ActivityEvent {
   return {
-    id,
-    content: `Task ${id}`,
-    completed_at: '2026-02-20T10:00:00Z',
-    project_id: 'proj1',
-    task_id: id,
+    id: 12345,
+    event_date: '2026-02-20T10:00:00.000000Z',
+    event_type: type,
+    object_id: objectId,
+    object_type: 'item',
+    parent_project_id: 'proj1',
+    parent_item_id: null,
+    initiator_id: 'user1',
+    extra_data: { content: `Task ${objectId}` },
   };
 }
 
@@ -20,7 +24,7 @@ const projects: Record<string, Project> = {
 /** Directly mutate the cached record in IndexedDB for tampering tests. */
 async function tamperCache(mutate: (row: Record<string, unknown>) => void): Promise<void> {
   const db = await new Promise<IDBDatabase>((resolve, reject) => {
-    const req = indexedDB.open('reviewist', 1);
+    const req = indexedDB.open('reviewist', 2);
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
   });
@@ -51,38 +55,38 @@ describe('cache', () => {
     expect(await loadCachedState()).toBeNull();
   });
 
-  it('round-trips tasks and projects', async () => {
-    const tasks = [task('a'), task('b')];
-    await saveCachedState(tasks, projects);
+  it('round-trips events and projects', async () => {
+    const events = [event('a'), event('b')];
+    await saveCachedState(events, projects);
     const cached = await loadCachedState();
     expect(cached).not.toBeNull();
-    expect(cached!.tasks).toEqual(tasks);
+    expect(cached!.events).toEqual(events);
     expect(cached!.projects).toEqual(projects);
     expect(cached!.fetchedAt).toBeGreaterThan(0);
   });
 
   it('overwrites previous cache on save', async () => {
-    await saveCachedState([task('old')], projects);
-    await saveCachedState([task('new')], projects);
+    await saveCachedState([event('old')], projects);
+    await saveCachedState([event('new')], projects);
     const cached = await loadCachedState();
-    expect(cached!.tasks).toHaveLength(1);
-    expect(cached!.tasks[0].id).toBe('new');
+    expect(cached!.events).toHaveLength(1);
+    expect(cached!.events[0].object_id).toBe('new');
   });
 
   it('clear removes cached data', async () => {
-    await saveCachedState([task('a')], projects);
+    await saveCachedState([event('a')], projects);
     await clearCachedState();
     expect(await loadCachedState()).toBeNull();
   });
 
-  it('returns null when taskCount is tampered', async () => {
-    await saveCachedState([task('a'), task('b')], projects);
-    await tamperCache(row => { row.taskCount = 99; });
+  it('returns null when eventCount is tampered', async () => {
+    await saveCachedState([event('a'), event('b')], projects);
+    await tamperCache(row => { row.eventCount = 99; });
     expect(await loadCachedState()).toBeNull();
   });
 
   it('returns null when hash is tampered', async () => {
-    await saveCachedState([task('a')], projects);
+    await saveCachedState([event('a')], projects);
     await tamperCache(row => { row.hash = 'deadbeef'; });
     expect(await loadCachedState()).toBeNull();
   });
