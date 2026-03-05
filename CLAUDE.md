@@ -115,6 +115,15 @@ reviewist/
 │       ├── FilterChips.svelte  # Project filter toggles with Todoist colors
 │       ├── TaskList.svelte     # Day grouping, dedup, renders TaskItems
 │       └── TaskItem.svelte     # Single task: check, content, label chips, project chip, time
+└── tests/
+    ├── api.test.ts
+    ├── cache.test.ts
+    ├── dates.test.ts
+    ├── events.test.ts
+    ├── reconcile.test.ts
+    ├── reconcile.bench.ts
+    ├── storage.test.ts
+    └── tasks.test.ts
 ```
 
 ### Architecture
@@ -178,11 +187,11 @@ A build-time blocklist (`src/blocklist.txt`, one task ID per line) filters out k
 
 ### Testing
 
-Tests live alongside source files (`src/lib/*.test.ts`), using vitest with jsdom environment. Non-trivial `src/lib/` logic should have test coverage. When modifying existing code, verify existing tests still pass. When adding new logic, add tests if the code is non-trivial and feasible to test (pure functions, state logic — not Svelte components or fetch wrappers).
+Tests live in `tests/` (project root), using vitest with jsdom environment. Non-trivial `src/lib/` logic should have test coverage. When modifying existing code, verify existing tests still pass. When adding new logic, add tests if the code is non-trivial and feasible to test (pure functions, state logic — not Svelte components or fetch wrappers).
 
 - `pnpm validate` runs vitest, svelte-check, and eslint in sequence.
-- `src/lib/reconcile.test.ts` covers reconciliation: uncomplete cancellation, recurring task handling, out-of-order events.
-- `src/lib/cache.test.ts` covers cache round-trips and integrity check failures.
+- `tests/reconcile.test.ts` covers reconciliation: uncomplete cancellation, recurring task handling, out-of-order events.
+- `tests/cache.test.ts` covers cache round-trips and integrity check failures.
 - When creating test tasks in Todoist for API experimentation, always delete them while uncompleted. Completing a test task and then deleting it leaves orphaned `completed` events in the activity log that will show up in Reviewist forever.
 
 ### SDK note

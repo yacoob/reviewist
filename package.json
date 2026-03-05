@@ -10,9 +10,9 @@
     "check": "svelte-check --tsconfig ./tsconfig.json",
     "test": "vitest run",
     "coverage": "vitest run --coverage",
-    "lint": "eslint src/",
-    "validate": "vitest run --coverage && svelte-check --tsconfig ./tsconfig.json && eslint src/",
-    "bench": "tsx src/lib/reconcile.bench.ts"
+    "lint": "eslint src/ tests/",
+    "validate": "vitest run --coverage && svelte-check --tsconfig ./tsconfig.json && eslint src/ tests/",
+    "bench": "tsx tests/reconcile.bench.ts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

@@ -9,7 +9,7 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       include: ['src/lib/**'],
-      exclude: ['src/lib/*.bench.ts', 'src/lib/store.svelte.ts', 'src/lib/types.ts'],
+      exclude: ['src/lib/store.svelte.ts', 'src/lib/types.ts'],
       thresholds: {
         statements: 90,
         lines: 90,

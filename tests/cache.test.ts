@@ -1,7 +1,7 @@
 import 'fake-indexeddb/auto';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { loadCachedState, saveCachedState, clearCachedState } from './cache';
-import type { ActivityEvent, Project } from './types';
+import { loadCachedState, saveCachedState, clearCachedState } from '../src/lib/cache';
+import type { ActivityEvent, Project } from '../src/lib/types';
 
 function event(objectId: string, type: 'completed' | 'uncompleted' = 'completed'): ActivityEvent {
   return {

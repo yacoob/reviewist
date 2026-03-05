@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { groupTasksByDay } from './tasks';
-import type { CompletedTask, Project } from './types';
-import { TODOIST_COLORS } from './colors';
+import { groupTasksByDay } from '../src/lib/tasks';
+import type { CompletedTask, Project } from '../src/lib/types';
+import { TODOIST_COLORS } from '../src/lib/colors';
 
 function task(overrides: Partial<CompletedTask> = {}): CompletedTask {
   return {
