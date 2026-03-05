@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { fetchProjects, fetchActivityEvents } from './api';
-import type { ActivityEvent } from './types';
+import { fetchProjects, fetchActivityEvents } from '../src/lib/api';
+import type { ActivityEvent } from '../src/lib/types';
 
 function mockFetch(body: unknown, status = 200) {
   return vi.fn().mockResolvedValue({

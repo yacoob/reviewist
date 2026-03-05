@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { fmtDate, formatDayLabel } from './dates';
+import { fmtDate, formatDayLabel } from '../src/lib/dates';
 
 afterEach(() => {
   vi.useRealTimers();

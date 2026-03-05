@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { newestEventDate, mergeEvents } from './events';
-import type { ActivityEvent } from './types';
+import { newestEventDate, mergeEvents } from '../src/lib/events';
+import type { ActivityEvent } from '../src/lib/types';
 
 function event(objectId: string, date: string, type: 'completed' | 'uncompleted' = 'completed'): ActivityEvent {
   return {

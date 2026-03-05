@@ -8,7 +8,7 @@ import {
   loadRefreshInterval,
   saveRefreshInterval,
   BLOCKLIST,
-} from './storage';
+} from '../src/lib/storage';
 
 beforeEach(() => {
   localStorage.clear();

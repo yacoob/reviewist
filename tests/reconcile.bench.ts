@@ -1,7 +1,7 @@
 /**
  * Benchmark for reconcile().
  *
- * Run: npx tsx src/lib/reconcile.bench.ts
+ * Run: npx tsx tests/reconcile.bench.ts
  *
  * Generates event streams modeled on observed usage patterns:
  * - 5 recurring tasks at varied frequencies (~2.67 completions/day)
@@ -10,8 +10,8 @@
  * - spread across 5 projects
  */
 
-import { reconcile } from './reconcile';
-import type { ActivityEvent } from './types';
+import { reconcile } from '../src/lib/reconcile';
+import type { ActivityEvent } from '../src/lib/types';
 
 function makeEvent(overrides: Partial<ActivityEvent>): ActivityEvent {
   return {

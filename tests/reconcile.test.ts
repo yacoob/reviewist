@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { reconcile } from './reconcile';
-import { BLOCKLIST } from './storage';
-import type { ActivityEvent } from './types';
+import { reconcile } from '../src/lib/reconcile';
+import { BLOCKLIST } from '../src/lib/storage';
+import type { ActivityEvent } from '../src/lib/types';
 
 function ev(overrides: Partial<ActivityEvent> = {}): ActivityEvent {
   return {
