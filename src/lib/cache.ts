@@ -34,9 +34,7 @@ export async function computeHash(data: string): Promise<string> {
 
 export async function loadCachedState(): Promise<CachedState | null> {
   try {
-    const t0 = performance.now();
     const db = await openDB();
-    console.log(`[cache] openDB: ${(performance.now() - t0).toFixed(1)}ms`);
     const row = await new Promise<Record<string, unknown> | null>((resolve) => {
       const tx = db.transaction(STORE_NAME, 'readonly');
       const store = tx.objectStore(STORE_NAME);
@@ -45,10 +43,7 @@ export async function loadCachedState(): Promise<CachedState | null> {
       req.onerror = () => resolve(null);
     });
 
-    if (!row) {
-      console.log(`[cache] load: ${(performance.now() - t0).toFixed(1)}ms, miss`);
-      return null;
-    }
+    if (!row) return null;
 
     const events = row.events as ActivityEvent[];
     const projects = row.projects as Record<string, Project>;
@@ -56,7 +51,7 @@ export async function loadCachedState(): Promise<CachedState | null> {
 
     // Structural check
     if (!Array.isArray(events) || events.length !== row.eventCount) {
-      console.warn('[cache] structural check failed, discarding');
+      console.warn('[store] IndexedDB cache failed structural check, discarding');
       return null;
     }
 
@@ -65,14 +60,12 @@ export async function loadCachedState(): Promise<CachedState | null> {
     if (expected) {
       const actual = await computeHash(JSON.stringify(events));
       if (actual !== expected) {
-        console.warn('[cache] hash check failed, discarding');
+        console.warn('[store] IndexedDB cache failed hash check, discarding');
         return null;
       }
     }
 
-    const result = { events, projects, fetchedAt };
-    console.log(`[cache] load: ${(performance.now() - t0).toFixed(1)}ms, ${events.length} events`);
-    return result;
+    return { events, projects, fetchedAt };
   } catch (e) {
     console.error('[cache] load failed:', e);
     return null;
@@ -81,9 +74,7 @@ export async function loadCachedState(): Promise<CachedState | null> {
 
 export async function saveCachedState(events: ActivityEvent[], projects: Record<string, Project>): Promise<void> {
   try {
-    const t0 = performance.now();
     const db = await openDB();
-    console.log(`[cache] save openDB: ${(performance.now() - t0).toFixed(1)}ms`);
     const hash = await computeHash(JSON.stringify(events));
     await new Promise<void>((resolve, reject) => {
       const tx = db.transaction(STORE_NAME, 'readwrite');
@@ -100,7 +91,6 @@ export async function saveCachedState(events: ActivityEvent[], projects: Record<
       tx.oncomplete = () => resolve();
       tx.onerror = () => reject(tx.error);
     });
-    console.log(`[cache] save: ${(performance.now() - t0).toFixed(1)}ms, ${events.length} events`);
   } catch (e) {
     console.error('[cache] save failed:', e);
   }

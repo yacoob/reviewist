@@ -25,14 +25,20 @@ let cachedEvents: ActivityEvent[] = [];
 
 async function doFetch(): Promise<{ error?: string }> {
   const t0 = performance.now();
-  const log = (msg: string) => console.log('[store] %s (%.1fms)', msg, performance.now() - t0);
+  let tPrev = t0;
+  const log = (msg: string) => {
+    const now = performance.now();
+    const delta = `+${Math.round(now - tPrev).toString().padStart(4)}ms`;
+    tPrev = now;
+    console.log(`[store] ${delta}: ${msg}`);
+  };
 
   if (!token) {
     return { error: 'Enter your API token' };
   }
 
   fetching = true;
-  log('fetch start');
+  console.log('[store] refresh started');
 
   // Load cache on first call (when we have no events in memory)
   if (cachedEvents.length === 0) {
@@ -42,15 +48,14 @@ async function doFetch(): Promise<{ error?: string }> {
         cachedEvents = cached.events;
         projects = cached.projects;
         lastFetchTime = cached.fetchedAt;
-        // Reconcile cached events for instant render
         const filtered = cachedEvents.filter(e => !BLOCKLIST.has(e.object_id));
         allTasks = reconcile(filtered);
-        log(`cache hit: ${cachedEvents.length} events → ${allTasks.length} tasks, fetched ${new Date(cached.fetchedAt).toLocaleTimeString()}`);
+        log(`loaded ${cachedEvents.length} events and ${Object.keys(cached.projects).length} projects from IndexedDB cache (last fetched ${new Date(cached.fetchedAt).toLocaleTimeString()}), reconciled into ${allTasks.length} tasks`);
       } else {
-        log('cache miss');
+        log('no IndexedDB cache found');
       }
     } catch {
-      log('cache load error');
+      log('IndexedDB cache load failed');
     }
   }
 
@@ -62,14 +67,14 @@ async function doFetch(): Promise<{ error?: string }> {
   const until = fmtDate(new Date());
 
   const incremental = !!newest;
-  log(`API fetch start (${incremental ? 'incremental' : 'full'}, since=${since})`);
+  log(`fetching events from API (${incremental ? 'incremental' : 'full'}, since=${since})`);
 
   try {
     const [projMap, newEvents] = await Promise.all([
       fetchProjects(token),
       fetchActivityEvents(token, since, until),
     ]);
-    log(`API done: ${Object.keys(projMap).length} projects, ${newEvents.length} events`);
+    log(`API returned ${newEvents.length} events, ${Object.keys(projMap).length} projects`);
 
     // Merge and reconcile
     const merged = incremental ? mergeEvents(cachedEvents, newEvents) : newEvents;
@@ -77,11 +82,12 @@ async function doFetch(): Promise<{ error?: string }> {
     if (!incremental) {
       merged.sort((a, b) => a.event_date < b.event_date ? -1 : a.event_date > b.event_date ? 1 : 0);
     }
-    log(`merged: ${merged.length} events`);
+    if (incremental) {
+      log(`merged ${cachedEvents.length} cached + ${newEvents.length} fetched events into ${merged.length} events (${merged.length - cachedEvents.length} new)`);
+    }
 
     const filtered = merged.filter(e => !BLOCKLIST.has(e.object_id));
     const newTasks = reconcile(filtered);
-    log(`reconciled: ${newTasks.length} tasks`);
 
     // Update state
     cachedEvents = merged;
@@ -90,23 +96,24 @@ async function doFetch(): Promise<{ error?: string }> {
     if (tasksChanged || projChanged) {
       allTasks = newTasks;
       projects = projMap;
-      log('state updated');
+      log(`reconciled ${merged.length} events into ${newTasks.length} tasks, task data changed`);
     } else {
-      log('no changes');
+      log(`reconciled ${merged.length} events into ${newTasks.length} tasks, task data unchanged`);
     }
 
     // Save cache
     saveCachedState(cachedEvents, $state.snapshot(projects));
+    log(`saved ${cachedEvents.length} events to IndexedDB cache`);
     lastFetchTime = Date.now();
     return {};
   } catch (e) {
-    log(`API error: ${(e as Error).message}`);
+    log(`API request failed: ${(e as Error).message}`);
     if (cachedEvents.length > 0) return {};
     allTasks = [];
     return { error: (e as Error).message };
   } finally {
     fetching = false;
-    log('fetch complete');
+    console.log(`[store] refresh done (${Math.round(performance.now() - t0)}ms)`);
   }
 }
 
