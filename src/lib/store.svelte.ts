@@ -10,8 +10,7 @@ import {
 } from './storage';
 import { loadCachedState, saveCachedState, clearCachedState } from './cache';
 
-const SIX_WEEKS_MS = 42 * 86400000;
-const OVERLAP_MS = 3600000; // 1 hour
+import { newestEventDate, mergeEvents, SIX_WEEKS_MS, OVERLAP_MS } from './events';
 
 let token = $state(loadToken());
 let refreshInterval = $state(loadRefreshInterval());
@@ -23,27 +22,6 @@ let fetching = $state(false);
 
 // Internal event cache — not reactive, used for incremental fetch logic
 let cachedEvents: ActivityEvent[] = [];
-
-function newestEventDate(events: ActivityEvent[]): string | null {
-  if (events.length === 0) return null;
-  return events.at(-1)!.event_date;
-}
-
-/** Merge new events into existing, dedup, sort, evict old. */
-function mergeEvents(existing: ActivityEvent[], incoming: ActivityEvent[]): ActivityEvent[] {
-  const seen: Record<string, true> = {};
-  const merged: ActivityEvent[] = [];
-  for (const e of [...existing, ...incoming]) {
-    const key = e.object_id + '|' + e.event_date;
-    if (!seen[key]) {
-      seen[key] = true;
-      merged.push(e);
-    }
-  }
-  merged.sort((a, b) => a.event_date < b.event_date ? -1 : a.event_date > b.event_date ? 1 : 0);
-  const cutoff = new Date(Date.now() - SIX_WEEKS_MS).toISOString();
-  return merged.filter(e => e.event_date >= cutoff);
-}
 
 async function doFetch(): Promise<{ error?: string }> {
   const t0 = performance.now();
