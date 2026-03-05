@@ -17,7 +17,9 @@
       "Bash(jj log:*)",
       "Bash(jj commit:*)",
       "Bash(ls:*)",
-      "Bash(pnpm validate:*)"
+      "Bash(pnpm validate:*)",
+      "mcp__svelte__get-documentation",
+      "Bash(jj squash:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
