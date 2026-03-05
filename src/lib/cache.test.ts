@@ -1,5 +1,5 @@
 import 'fake-indexeddb/auto';
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { loadCachedState, saveCachedState, clearCachedState } from './cache';
 import type { CompletedTask, Project } from './types';
 
@@ -17,7 +17,32 @@ const projects: Record<string, Project> = {
   proj1: { name: 'Work', color: 'blue' },
 };
 
+/** Directly mutate the cached record in IndexedDB for tampering tests. */
+async function tamperCache(mutate: (row: Record<string, unknown>) => void): Promise<void> {
+  const db = await new Promise<IDBDatabase>((resolve, reject) => {
+    const req = indexedDB.open('reviewist', 1);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+  const row = await new Promise<Record<string, unknown>>((resolve, reject) => {
+    const tx = db.transaction('cache', 'readonly');
+    const req = tx.objectStore('cache').get('state');
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+  mutate(row);
+  await new Promise<void>((resolve, reject) => {
+    const tx = db.transaction('cache', 'readwrite');
+    const req = tx.objectStore('cache').put(row);
+    req.onerror = () => reject(req.error);
+    tx.oncomplete = () => resolve();
+  });
+}
+
 beforeEach(async () => {
+  vi.spyOn(console, 'log').mockImplementation(() => {});
+  vi.spyOn(console, 'warn').mockImplementation(() => {});
+  vi.spyOn(console, 'error').mockImplementation(() => {});
   await clearCachedState();
 });
 
@@ -47,6 +72,18 @@ describe('cache', () => {
   it('clear removes cached data', async () => {
     await saveCachedState([task('a')], projects);
     await clearCachedState();
+    expect(await loadCachedState()).toBeNull();
+  });
+
+  it('returns null when taskCount is tampered', async () => {
+    await saveCachedState([task('a'), task('b')], projects);
+    await tamperCache(row => { row.taskCount = 99; });
+    expect(await loadCachedState()).toBeNull();
+  });
+
+  it('returns null when hash is tampered', async () => {
+    await saveCachedState([task('a')], projects);
+    await tamperCache(row => { row.hash = 'deadbeef'; });
     expect(await loadCachedState()).toBeNull();
   });
 });

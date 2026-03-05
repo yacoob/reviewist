@@ -25,22 +25,51 @@ function openDB(): Promise<IDBDatabase> {
   });
 }
 
+export async function computeHash(data: string): Promise<string> {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(data));
+  return Array.from(new Uint8Array(buf), b => b.toString(16).padStart(2, '0')).join('');
+}
+
 export async function loadCachedState(): Promise<CachedState | null> {
   try {
     const t0 = performance.now();
     const db = await openDB();
     console.log(`[cache] openDB: ${(performance.now() - t0).toFixed(1)}ms`);
-    const result = await new Promise<CachedState | null>((resolve) => {
+    const row = await new Promise<Record<string, unknown> | null>((resolve) => {
       const tx = db.transaction(STORE_NAME, 'readonly');
       const store = tx.objectStore(STORE_NAME);
       const req = store.get(CACHE_KEY);
-      req.onsuccess = () => {
-        const row = req.result;
-        resolve(row ? { tasks: row.tasks, projects: row.projects, fetchedAt: row.fetchedAt } : null);
-      };
+      req.onsuccess = () => resolve(req.result ?? null);
       req.onerror = () => resolve(null);
     });
-    console.log(`[cache] load: ${(performance.now() - t0).toFixed(1)}ms, ${result ? `${result.tasks.length} tasks` : 'miss'}`);
+
+    if (!row) {
+      console.log(`[cache] load: ${(performance.now() - t0).toFixed(1)}ms, miss`);
+      return null;
+    }
+
+    const tasks = row.tasks as CompletedTask[];
+    const projects = row.projects as Record<string, Project>;
+    const fetchedAt = row.fetchedAt as number;
+
+    // Structural check
+    if (!Array.isArray(tasks) || tasks.length !== row.taskCount) {
+      console.warn('[cache] structural check failed, discarding');
+      return null;
+    }
+
+    // Content hash check
+    const expected = row.hash as string;
+    if (expected) {
+      const actual = await computeHash(JSON.stringify(tasks));
+      if (actual !== expected) {
+        console.warn('[cache] hash check failed, discarding');
+        return null;
+      }
+    }
+
+    const result = { tasks, projects, fetchedAt };
+    console.log(`[cache] load: ${(performance.now() - t0).toFixed(1)}ms, ${tasks.length} tasks`);
     return result;
   } catch (e) {
     console.error('[cache] load failed:', e);
@@ -53,10 +82,18 @@ export async function saveCachedState(tasks: CompletedTask[], projects: Record<s
     const t0 = performance.now();
     const db = await openDB();
     console.log(`[cache] save openDB: ${(performance.now() - t0).toFixed(1)}ms`);
+    const hash = await computeHash(JSON.stringify(tasks));
     await new Promise<void>((resolve, reject) => {
       const tx = db.transaction(STORE_NAME, 'readwrite');
       const store = tx.objectStore(STORE_NAME);
-      const req = store.put({ key: CACHE_KEY, tasks, projects, fetchedAt: Date.now() });
+      const req = store.put({
+        key: CACHE_KEY,
+        tasks,
+        projects,
+        fetchedAt: Date.now(),
+        taskCount: tasks.length,
+        hash,
+      });
       req.onerror = () => reject(req.error);
       tx.oncomplete = () => resolve();
       tx.onerror = () => reject(tx.error);
