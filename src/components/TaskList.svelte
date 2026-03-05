@@ -2,6 +2,9 @@
   import type { CompletedTask, Project } from '../lib/types';
   import { groupTasksByDay } from '../lib/tasks';
   import TaskItem from './TaskItem.svelte';
+  import { fade } from 'svelte/transition';
+  import { flip } from 'svelte/animate';
+  import { prefersReducedMotion } from 'svelte/motion';
 
   interface Props {
     tasks: CompletedTask[];
@@ -16,6 +19,8 @@
   );
 
   let days = $derived(groupTasksByDay(filteredTasks, projects));
+
+  function d(ms: number) { return prefersReducedMotion.current ? 0 : ms; }
 </script>
 
 {#if filteredTasks.length === 0}
@@ -38,12 +43,20 @@
         <div
           class="project-box"
           style={group.hex ? `--box-color:${group.hex}` : ''}
+          in:fade={{ duration: d(150) }}
+          out:fade={{ duration: d(100) }}
         >
           {#if group.unfiled}
             <div class="unfiled-header">unfiled</div>
           {/if}
           {#each group.tasks as task (task.id + task.completed_at)}
-            <TaskItem {task} />
+            <div
+              in:fade={{ duration: d(150) }}
+              out:fade={{ duration: d(100) }}
+              animate:flip={{ duration: d(200) }}
+            >
+              <TaskItem {task} />
+            </div>
           {/each}
         </div>
       {/each}
