@@ -38,7 +38,7 @@ async function doFetch(): Promise<{ error?: string }> {
   }
 
   fetching = true;
-  console.log('[store] refresh started');
+  console.log(`[store] ${new Date().toISOString()} refresh started`);
 
   // Load cache on first call (when we have no events in memory)
   if (cachedEvents.length === 0) {
@@ -113,7 +113,7 @@ async function doFetch(): Promise<{ error?: string }> {
     return { error: (e as Error).message };
   } finally {
     fetching = false;
-    console.log(`[store] refresh done (${Math.round(performance.now() - t0)}ms)`);
+    console.log(`[store] ${new Date().toISOString()} refresh done (${Math.round(performance.now() - t0)}ms)`);
   }
 }
 
