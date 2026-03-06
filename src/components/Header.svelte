@@ -4,11 +4,13 @@
   interface Props {
     lastFetchTime: number | null;
     fetching: boolean;
+    searchQuery: string;
     onToggleSetup: () => void;
     onRefresh: () => void;
+    onSearch: () => void;
   }
 
-  let { lastFetchTime, fetching, onToggleSetup, onRefresh }: Props = $props();
+  let { lastFetchTime, fetching, searchQuery, onToggleSetup, onRefresh, onSearch }: Props = $props();
 
   const since = $derived(fmtDate(new Date(Date.now() - 42 * 86400000)));
 
@@ -39,7 +41,7 @@
 <header>
   <div class="header-left">
     <h1>reviewist //</h1>
-    <span class="date-range">since {since}</span>
+    <span class="date-range">since {since}{#if searchQuery}&nbsp;| rg -S "{searchQuery}"{/if}</span>
   </div>
   <div class="header-right">
     {#if fetching}
@@ -48,7 +50,8 @@
     {#if indicatorText}
       <button class="refresh-indicator" onclick={onRefresh} disabled={fetching} title="Click to refresh">{indicatorText}</button>
     {/if}
-    <button class="btn-icon" onclick={onToggleSetup} title="Settings">⚙</button>
+    <button class="btn-bare" onclick={onSearch} title="Filter tasks (Ctrl+K)">⌕</button>
+    <button class="btn-bare" onclick={onToggleSetup} title="Settings">⚙</button>
   </div>
 </header>
 
@@ -56,7 +59,7 @@
   header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: baseline;
     margin-bottom: 1.25rem;
   }
   h1 {
@@ -69,15 +72,17 @@
   .header-right {
     display: flex;
     gap: 0.75rem;
-    align-items: center;
+    align-items: baseline;
   }
   .fetch-spinner {
-    width: 0.75rem;
-    height: 0.75rem;
+    display: inline-block;
+    width: 0.6rem;
+    height: 0.6rem;
     border: 2px solid var(--border);
     border-top-color: var(--text-muted);
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
+    vertical-align: middle;
   }
   @keyframes spin {
     to { transform: rotate(360deg); }
@@ -105,18 +110,17 @@
     color: var(--text-muted);
     white-space: nowrap;
   }
-  .btn-icon {
+  .btn-bare {
     background: transparent;
-    border: 1px solid var(--border);
+    border: none;
     color: var(--text-muted);
     font-size: 0.85rem;
-    padding: 0.3rem 0.5rem;
-    border-radius: 5px;
+    padding: 0;
     cursor: pointer;
-    font-family: inherit;
-    transition: all 0.15s;
+    transition: color 0.15s;
+    vertical-align: baseline;
   }
-  .btn-icon:hover { color: var(--text); border-color: var(--text-muted); }
+  .btn-bare:hover { color: var(--text); }
 
   @media print {
     .header-right { display: none; }

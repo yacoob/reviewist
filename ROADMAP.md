@@ -2,8 +2,6 @@
 
 ## open questions and things to implement
 - how is the merge of new data performed? are we risking a quick redraw of existing cached rows? how does svelte handle that?
-- check if we get any more information with `annotate_notes` and `annotate_parents`
-- a filter/grep through existing tasks
 - are we actually using something we should no longer be using? like localStorage, etc? fragmented code surviving from previous iterations?
 - better test coverage (includes dropping old code)
 - check if `event_date` is UTC and adjust to the local (?) timezone - otherwise a task completed at 11pm local time may show as the next day.

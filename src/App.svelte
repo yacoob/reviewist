@@ -12,6 +12,45 @@
   let statusType: StatusType = $state(null);
   let setupVisible = $state(false);
 
+  let searchOpen = $state(false);
+  let searchInput = $state('');
+  let searchQuery = $state('');
+  let inputEl: HTMLInputElement | undefined = $state();
+
+  function openSearch() {
+    searchInput = searchQuery;
+    searchOpen = true;
+    requestAnimationFrame(() => {
+      inputEl?.focus();
+      inputEl?.select();
+    });
+  }
+
+  function closeSearch() {
+    searchOpen = false;
+  }
+
+  function submitSearch() {
+    searchQuery = searchInput;
+    searchOpen = false;
+  }
+
+  function handleSearchKey(e: KeyboardEvent) {
+    if (e.key === 'Escape') closeSearch();
+    else if (e.key === 'Enter') submitSearch();
+  }
+
+  function handleGlobalKey(e: KeyboardEvent) {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+      e.preventDefault();
+      if (searchOpen) {
+        closeSearch();
+      } else {
+        openSearch();
+      }
+    }
+  }
+
   function showStatus(msg: string, type: StatusType) {
     statusMessage = msg;
     statusType = type;
@@ -68,8 +107,10 @@
   });
 </script>
 
+<svelte:window onkeydown={handleGlobalKey} />
+
 <div class="container">
-  <Header lastFetchTime={store.lastFetchTime} fetching={store.fetching} onToggleSetup={() => (setupVisible = !setupVisible)} onRefresh={handleFetch} />
+  <Header lastFetchTime={store.lastFetchTime} fetching={store.fetching} {searchQuery} onToggleSetup={() => (setupVisible = !setupVisible)} onRefresh={handleFetch} onSearch={openSearch} />
   <SetupPanel
     visible={setupVisible}
     bind:token={store.token}
@@ -93,9 +134,27 @@
       excludedProjects={store.excludedProjects}
       onToggle={handleToggleProject}
     />
-    <TaskList tasks={store.allTasks} excludedProjects={store.excludedProjects} projects={store.projects} />
+    <TaskList tasks={store.allTasks} excludedProjects={store.excludedProjects} projects={store.projects} {searchQuery} />
   {/if}
 </div>
+
+{#if searchOpen}
+  <!-- svelte-ignore a11y_click_events_have_key_events -->
+  <div class="search-overlay" onclick={closeSearch} role="presentation">
+    <!-- svelte-ignore a11y_no_static_element_interactions a11y_click_events_have_key_events -->
+    <div class="search-modal" onclick={(e) => e.stopPropagation()}>
+      <input
+        bind:this={inputEl}
+        type="text"
+        class="search-input"
+        placeholder="filter tasks..."
+        bind:value={searchInput}
+        onkeydown={handleSearchKey}
+      />
+      <span class="search-hint">Enter to apply · Esc to cancel</span>
+    </div>
+  </div>
+{/if}
 
 <style>
   .container {
@@ -113,5 +172,43 @@
     font-family: 'JetBrains Mono', monospace;
     font-size: 0.7rem;
     margin-top: 0.5rem;
+  }
+  .search-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 20vh;
+    z-index: 100;
+  }
+  .search-modal {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+    width: min(480px, 90vw);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .search-input {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 0.75rem 1rem;
+    color: var(--text);
+    outline: none;
+    width: 100%;
+  }
+  .search-input:focus { border-color: var(--accent); }
+  .search-hint {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--text-muted);
+    text-align: center;
   }
 </style>

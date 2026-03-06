@@ -10,12 +10,27 @@
     tasks: CompletedTask[];
     excludedProjects: string[];
     projects: Record<string, Project>;
+    searchQuery?: string;
   }
 
-  let { tasks, excludedProjects, projects }: Props = $props();
+  let { tasks, excludedProjects, projects, searchQuery = '' }: Props = $props();
+
+  let searchRegex = $derived.by(() => {
+    if (!searchQuery) return null;
+    try {
+      const flags = searchQuery === searchQuery.toLowerCase() ? 'i' : '';
+      return new RegExp(searchQuery, flags);
+    } catch {
+      return null;
+    }
+  });
 
   let filteredTasks = $derived(
-    tasks.filter((t) => !excludedProjects.includes(t.project_id)),
+    tasks.filter((t) => {
+      if (excludedProjects.includes(t.project_id)) return false;
+      if (searchRegex) return searchRegex.test(t.content);
+      return true;
+    }),
   );
 
   let eventProjectId = $derived(
