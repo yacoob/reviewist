@@ -10,7 +10,10 @@ export default tseslint.config(
   ...svelte.configs.recommended,
   {
     languageOptions: {
-      globals: globals.browser,
+      globals: {
+        ...globals.browser,
+        __EVENT_PROJECT__: 'readonly',
+      },
     },
   },
   {

@@ -18,7 +18,11 @@
     tasks.filter((t) => !excludedProjects.includes(t.project_id)),
   );
 
-  let days = $derived(groupTasksByDay(filteredTasks, projects));
+  let eventProjectId = $derived(
+    Object.entries(projects).find(([, p]) => p.name === __EVENT_PROJECT__)?.[0] ?? null,
+  );
+
+  let days = $derived(groupTasksByDay(filteredTasks, projects, eventProjectId));
 
   function d(ms: number) { return prefersReducedMotion.current ? 0 : ms; }
 </script>
@@ -55,7 +59,7 @@
               out:fade={{ duration: d(100) }}
               animate:flip={{ duration: d(200) }}
             >
-              <TaskItem {task} />
+              <TaskItem {task} isEvent={group.projectId === eventProjectId} />
             </div>
           {/each}
         </div>

@@ -3,12 +3,12 @@
 
   interface Props {
     task: DedupedTask;
+    isEvent?: boolean;
   }
 
-  let { task }: Props = $props();
+  let { task, isEvent = false }: Props = $props();
 
   let rawContent = $derived(task.content || task.task_id || '?');
-  let isEvent = $derived(rawContent.startsWith('* '));
   let strippedContent = $derived(isEvent ? rawContent.replace(/^\*\s+/, '') : rawContent);
   let inlineLabels = $derived((strippedContent.match(/@\w+/g) || []).map((l: string) => l.slice(1)));
   let plainContent = $derived(strippedContent.replace(/@\w+/g, '').replace(/\s{2,}/g, ' ').trim());
@@ -39,14 +39,16 @@
   {#if import.meta.env.DEV}
     <span class="task-debug-id">{task.task_id}</span>
   {/if}
-  <a
-    class="task-time"
-    class:has-tooltip={task.count > 1 && !!latestTime}
-    title={task.count > 1 ? allTimesFormatted : undefined}
-    href="https://app.todoist.com/app/task/{task.task_id}"
-    target="_blank">{latestTime}</a>
-  <span class="task-check">{isEvent ? '' : '✓'}</span>
-  <span class="task-content">{#each contentParts as part, i (i)}{#if part.type === 'link'}<a class="task-inline-link" href={part.href} target="_blank">{part.text}</a>{:else}{part.text}{/if}{/each}{#if task.count > 1}&nbsp;<span class="task-count">(×{task.count})</span>{/if}</span>
+  {#if !isEvent}
+    <a
+      class="task-time"
+      class:has-tooltip={task.count > 1 && !!latestTime}
+      title={task.count > 1 ? allTimesFormatted : undefined}
+      href="https://app.todoist.com/app/task/{task.task_id}"
+      target="_blank">{latestTime}</a>
+    <span class="task-check">✓</span>
+  {/if}
+  <span class="task-content">{#each contentParts as part, i (i)}{#if part.type === 'link'}<a class="task-inline-link" href={part.href} target="_blank">{part.text}</a>{:else}{part.text}{/if}{/each}{#if !isEvent && task.count > 1}&nbsp;<span class="task-count">(×{task.count})</span>{/if}</span>
   <div class="task-meta">
     {#if labels.length}
       <span class="task-labels">

@@ -39,7 +39,13 @@ function dedup(tasks: CompletedTask[]): DedupedTask[] {
   return result;
 }
 
-function groupByProject(tasks: DedupedTask[], projects: Record<string, Project>): ProjectGroup[] {
+/** Return the first letter (ignoring leading emoji/symbols), lowercased. */
+export function sortKey(content: string): string {
+  const m = content.match(/\p{Letter}/u);
+  return m ? m[0].toLowerCase() : content.toLowerCase();
+}
+
+function groupByProject(tasks: DedupedTask[], projects: Record<string, Project>, eventProjectId: string | null): ProjectGroup[] {
   const byProject: Record<string, DedupedTask[]> = {};
   for (const t of tasks) {
     const pid = t.project_id || '';
@@ -51,6 +57,9 @@ function groupByProject(tasks: DedupedTask[], projects: Record<string, Project>)
       const proj = projects[pid];
       const unfiled = !proj?.name;
       const hex = unfiled ? TODOIST_COLORS.red : (proj?.color ? TODOIST_COLORS[proj.color] || null : null);
+      if (pid === eventProjectId) {
+        tasks.sort((a, b) => sortKey(a.content).localeCompare(sortKey(b.content)));
+      }
       return { projectId: pid, hex, unfiled, tasks };
     })
     .sort((a, b) => {
@@ -61,7 +70,7 @@ function groupByProject(tasks: DedupedTask[], projects: Record<string, Project>)
     });
 }
 
-export function groupTasksByDay(tasks: CompletedTask[], projects: Record<string, Project>): DayGroup[] {
+export function groupTasksByDay(tasks: CompletedTask[], projects: Record<string, Project>, eventProjectId: string | null = null): DayGroup[] {
   const grouped: Record<string, CompletedTask[]> = {};
   for (const t of tasks) {
     const date = (t.completed_at || '').split('T')[0] || 'Unknown';
@@ -73,7 +82,7 @@ export function groupTasksByDay(tasks: CompletedTask[], projects: Record<string,
     .reverse()
     .map((day) => {
       const deduped = dedup(grouped[day]);
-      const projectGroups = groupByProject(deduped, projects);
+      const projectGroups = groupByProject(deduped, projects, eventProjectId);
       const label = day === 'Unknown' ? 'Unknown date' : formatDayLabel(day);
       return { day, label, taskCount: deduped.length, projectGroups };
     });

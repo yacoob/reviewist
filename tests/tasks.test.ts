@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { groupTasksByDay } from '../src/lib/tasks';
+import { groupTasksByDay, sortKey } from '../src/lib/tasks';
 import type { CompletedTask, Project } from '../src/lib/types';
 import { TODOIST_COLORS } from '../src/lib/colors';
 
@@ -99,5 +99,45 @@ describe('groupTasksByDay', () => {
       p1: { name: 'Work', color: 'neon_pink' },
     });
     expect(result[0].projectGroups[0].hex).toBeNull();
+  });
+
+  it('sorts event project tasks alphabetically by first letter, ignoring emoji', () => {
+    const eventProjects: Record<string, Project> = {
+      ev: { name: 'Events', color: 'grey' },
+    };
+    const tasks = [
+      task({ content: 'Zebra event', project_id: 'ev', task_id: 't1', id: 'c1', completed_at: '2026-02-20T10:00:00Z' }),
+      task({ content: '🎉 Alpha event', project_id: 'ev', task_id: 't2', id: 'c2', completed_at: '2026-02-20T11:00:00Z' }),
+      task({ content: 'middle event', project_id: 'ev', task_id: 't3', id: 'c3', completed_at: '2026-02-20T09:00:00Z' }),
+    ];
+    const result = groupTasksByDay(tasks, eventProjects, 'ev');
+    const sorted = result[0].projectGroups[0].tasks;
+    expect(sorted.map(t => t.content)).toEqual([
+      '🎉 Alpha event',
+      'middle event',
+      'Zebra event',
+    ]);
+  });
+});
+
+describe('sortKey', () => {
+  it('returns first letter lowercased', () => {
+    expect(sortKey('Hello')).toBe('h');
+  });
+
+  it('skips leading emoji', () => {
+    expect(sortKey('🎉 Party')).toBe('p');
+  });
+
+  it('skips multiple leading emoji', () => {
+    expect(sortKey('🐱🐶 Animals')).toBe('a');
+  });
+
+  it('handles non-ASCII letters', () => {
+    expect(sortKey('Übermensch')).toBe('ü');
+  });
+
+  it('falls back to full string when no letters', () => {
+    expect(sortKey('123')).toBe('123');
   });
 });
