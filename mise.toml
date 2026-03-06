@@ -9,10 +9,3 @@ enter = [
 node = "22"
 pnpm = "latest"
 
-[tasks.clean]
-run = "rm -rf dist node_modules/.vite"
-description = "Remove build outputs and Vite cache"
-
-[tasks.raze]
-run = "rm -rf dist node_modules coverage"
-description = "Remove all local/generated files, leaving only tracked sources"
