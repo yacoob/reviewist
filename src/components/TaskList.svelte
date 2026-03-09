@@ -68,7 +68,7 @@
           {#if group.unfiled}
             <div class="unfiled-header">unfiled</div>
           {/if}
-          {#each group.tasks as task (task.id + task.completed_at)}
+          {#each group.tasks as task (task.id)}
             <div
               in:fade={{ duration: d(150) }}
               out:fade={{ duration: d(100) }}

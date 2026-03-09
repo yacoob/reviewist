@@ -20,7 +20,8 @@
       "Bash(pnpm validate:*)",
       "mcp__svelte__get-documentation",
       "Bash(jj squash:*)",
-      "Bash(pnpm build:*)"
+      "Bash(pnpm build:*)",
+      "Bash(grep:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

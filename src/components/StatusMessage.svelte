@@ -31,9 +31,4 @@
     color: var(--green);
     border: 1px solid rgba(76, 175, 80, 0.2);
   }
-  .status.loading {
-    background: var(--surface-2);
-    color: var(--text-dim);
-    border: 1px solid var(--border);
-  }
 </style>

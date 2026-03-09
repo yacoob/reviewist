@@ -16,7 +16,7 @@ export interface DedupedTask extends CompletedTask {
   allTimes: string[];
 }
 
-export type StatusType = 'error' | 'info' | 'loading' | null;
+export type StatusType = 'error' | 'info' | null;
 
 export type ActivityEventType = 'completed' | 'uncompleted';
 
