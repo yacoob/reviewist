@@ -10,21 +10,18 @@
 
   let rawContent = $derived(task.content || task.task_id || '?');
   let strippedContent = $derived(isEvent ? rawContent.replace(/^\*\s+/, '') : rawContent);
-  let inlineLabels = $derived((strippedContent.match(/@\w+/g) || []).map((l: string) => l.slice(1)));
-  let plainContent = $derived(strippedContent.replace(/@\w+/g, '').replace(/\s{2,}/g, ' ').trim());
-
   type ContentPart = { type: 'text'; text: string } | { type: 'link'; text: string; href: string };
   let contentParts: ContentPart[] = $derived((() => {
     const parts: ContentPart[] = [];
     const re = /\[([^\]]+)\]\(([^)]+)\)/g;
     let last = 0;
     let m;
-    while ((m = re.exec(plainContent)) !== null) {
-      if (m.index > last) parts.push({ type: 'text', text: plainContent.slice(last, m.index) });
+    while ((m = re.exec(strippedContent)) !== null) {
+      if (m.index > last) parts.push({ type: 'text', text: strippedContent.slice(last, m.index) });
       parts.push({ type: 'link', text: m[1], href: m[2] });
       last = m.index + m[0].length;
     }
-    if (last < plainContent.length) parts.push({ type: 'text', text: plainContent.slice(last) });
+    if (last < strippedContent.length) parts.push({ type: 'text', text: strippedContent.slice(last) });
     return parts;
   })());
 
@@ -35,9 +32,6 @@
 </script>
 
 <div class="task-item">
-  {#if import.meta.env.DEV}
-    <span class="task-debug-id">{task.task_id}</span>
-  {/if}
   {#if !isEvent}
     <a
       class="task-time"
@@ -48,19 +42,6 @@
     <span class="task-check">✓</span>
   {/if}
   <span class="task-content">{#each contentParts as part, i (i)}{#if part.type === 'link'}<a class="task-inline-link" href={part.href} target="_blank">{part.text}</a>{:else}{part.text}{/if}{/each}{#if !isEvent && task.count > 1}&nbsp;<span class="task-count">(×{task.count})</span>{/if}</span>
-  <div class="task-meta">
-    {#if inlineLabels.length}
-      <span class="task-labels">
-        {#each inlineLabels as label (label)}
-          <a
-            href="https://app.todoist.com/app/label/{encodeURIComponent(label)}"
-            target="_blank"
-            class="task-label"
->{label}</a>
-        {/each}
-      </span>
-    {/if}
-  </div>
 </div>
 
 <style>
@@ -70,16 +51,6 @@
     gap: 0.6rem;
     padding: 0.45rem 0.5rem 0.45rem 0;
     font-size: 0.85rem;
-    position: relative;
-  }
-  .task-debug-id {
-    position: absolute;
-    right: calc(100% + 2rem);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.5rem;
-    color: var(--text-muted);
-    opacity: 0.4;
-    white-space: nowrap;
   }
   .task-check {
     color: var(--green);
@@ -95,26 +66,6 @@
     text-decoration: none;
   }
   :global(.task-inline-link):hover { text-decoration: underline; }
-  .task-meta {
-    display: flex;
-    gap: 0.5rem;
-    align-items: center;
-    flex-shrink: 0;
-  }
-  .task-labels { display: inline-flex; gap: 0.25rem; }
-  :global(a).task-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.6rem;
-    background: transparent;
-    color: var(--text-dim);
-    border: 1px solid var(--border);
-    padding: 0.15rem 0.5rem;
-    border-radius: 4px;
-    white-space: nowrap;
-    text-decoration: none;
-    transition: border-color 0.15s;
-  }
-  :global(a).task-label:hover { border-color: var(--text-dim); }
   .task-time {
     font-family: 'JetBrains Mono', monospace;
     font-size: 0.6rem;
@@ -125,7 +76,7 @@
     text-align: right;
     flex-shrink: 0;
   }
-  .task-time:hover { color: var(--text); }
+  .task-time:hover { color: var(--text); text-decoration: underline; }
   .task-time.has-tooltip {
     cursor: help;
     text-decoration: underline dotted var(--text-muted);
@@ -138,7 +89,6 @@
 
   @media (max-width: 600px) {
     .task-item { flex-wrap: wrap; }
-    .task-meta { margin-left: 1.35rem; }
   }
 
   @media print {
