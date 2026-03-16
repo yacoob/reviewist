@@ -26,7 +26,8 @@
       "Bash(jj new:*)",
       "Bash(pnpm test:*)",
       "Bash(pnpm vitest:*)",
-      "Bash(jj split:*)"
+      "Bash(jj split:*)",
+      "Bash(git log:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

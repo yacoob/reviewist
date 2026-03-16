@@ -1,6 +1,6 @@
 import type { CompletedTask, DedupedTask, Project } from './types';
 import { TODOIST_COLORS } from './colors';
-import { formatDayLabel } from './dates';
+import { formatDayLabel, fmtLocalDate } from './dates';
 
 interface ProjectGroup {
   projectId: string;
@@ -70,7 +70,7 @@ function groupByProject(tasks: DedupedTask[], projects: Record<string, Project>,
 export function groupTasksByDay(tasks: CompletedTask[], projects: Record<string, Project>, eventProjectId: string | null = null): DayGroup[] {
   const grouped: Record<string, CompletedTask[]> = {};
   for (const t of tasks) {
-    const date = t.completed_at.split('T')[0] || 'Unknown';
+    const date = t.completed_at ? fmtLocalDate(new Date(t.completed_at)) : 'Unknown';
     (grouped[date] ??= []).push(t);
   }
 

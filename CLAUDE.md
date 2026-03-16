@@ -137,6 +137,15 @@ reviewist/
 2. **Reconcile**: Sort events chronologically, pair uncompletes with their preceding completes, produce `CompletedTask[]`
 3. **Display**: Group by day, dedup recurring tasks (×N badge), render with project colors
 
+#### Timezone convention
+
+The Todoist API returns `event_date` in UTC (ISO 8601 with `Z` suffix). The app uses two date functions:
+
+- **`fmtDate`** (UTC) — for API parameters (`date_from`) and cache logic. Uses `toISOString()`.
+- **`fmtLocalDate`** / **`fmtLocalTime`** (local timezone) — for all user-facing display: day grouping keys, "Today"/"Yesterday" labels, task completion times.
+
+This matters because a task completed at `2026-02-20T23:30:00Z` should appear under Feb 21 for a CET user, not Feb 20. Never use `split('T')[0]` to extract dates for display — always convert to a `Date` object first and use `fmtLocalDate`.
+
 #### Incremental fetching
 
 Raw `ActivityEvent[]` are cached in IndexedDB alongside projects. On page load:

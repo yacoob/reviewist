@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { DedupedTask } from '../lib/types';
+  import { fmtLocalTime } from '../lib/dates';
 
   interface Props {
     task: DedupedTask;
@@ -25,9 +26,9 @@
     return parts;
   })());
 
-  let latestTime = $derived((task.completed_at || '').split('T')[1]?.slice(0, 5) || '');
+  let latestTime = $derived(task.completed_at ? fmtLocalTime(task.completed_at) : '');
   let allTimesFormatted = $derived(
-    task.allTimes.map((ts: string) => ts.split('T')[1]?.slice(0, 5) || '?').sort().join(', '),
+    task.allTimes.map((ts: string) => fmtLocalTime(ts)).sort().join(', '),
   );
 </script>
 

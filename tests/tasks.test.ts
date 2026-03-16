@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { groupTasksByDay, sortKey } from '../src/lib/tasks';
 import type { CompletedTask, Project } from '../src/lib/types';
 import { TODOIST_COLORS } from '../src/lib/colors';
+import { fmtLocalDate } from '../src/lib/dates';
 
 function task(overrides: Partial<CompletedTask> = {}): CompletedTask {
   return {
@@ -27,7 +28,7 @@ describe('groupTasksByDay', () => {
   it('groups a single task into one day', () => {
     const result = groupTasksByDay([task()], projects);
     expect(result).toHaveLength(1);
-    expect(result[0].day).toBe('2026-02-20');
+    expect(result[0].day).toBe(fmtLocalDate(new Date('2026-02-20T10:00:00Z')));
     expect(result[0].taskCount).toBe(1);
   });
 
@@ -38,7 +39,12 @@ describe('groupTasksByDay', () => {
       task({ completed_at: '2026-02-19T10:00:00Z' }),
     ];
     const result = groupTasksByDay(tasks, projects);
-    expect(result.map((d) => d.day)).toEqual(['2026-02-20', '2026-02-19', '2026-02-18']);
+    const expected = [
+      fmtLocalDate(new Date('2026-02-20T10:00:00Z')),
+      fmtLocalDate(new Date('2026-02-19T10:00:00Z')),
+      fmtLocalDate(new Date('2026-02-18T10:00:00Z')),
+    ];
+    expect(result.map((d) => d.day)).toEqual(expected);
   });
 
   it('puts tasks with no completed_at into Unknown bucket', () => {
