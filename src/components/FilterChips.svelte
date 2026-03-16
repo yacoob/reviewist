@@ -69,7 +69,7 @@
     cursor: pointer;
     transition: all 0.15s;
     user-select: none;
-    opacity: 0.45;
+    opacity: 0.6;
   }
   .filter-chip.active {
     opacity: 1;
