@@ -7,7 +7,7 @@ export interface CachedState {
 }
 
 const DB_NAME = 'reviewist';
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 const STORE_NAME = 'cache';
 const CACHE_KEY = 'state';
 
@@ -16,10 +16,7 @@ function openDB(): Promise<IDBDatabase> {
     const req = indexedDB.open(DB_NAME, DB_VERSION);
     req.onupgradeneeded = () => {
       const db = req.result;
-      // Drop v1 store if upgrading
-      if (db.objectStoreNames.contains(STORE_NAME)) {
-        db.deleteObjectStore(STORE_NAME);
-      }
+      if (db.objectStoreNames.contains(STORE_NAME)) db.deleteObjectStore(STORE_NAME);
       db.createObjectStore(STORE_NAME, { keyPath: 'key' });
     };
     req.onsuccess = () => resolve(req.result);

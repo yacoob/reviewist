@@ -24,7 +24,7 @@ const projects: Record<string, Project> = {
 /** Directly mutate the cached record in IndexedDB for tampering tests. */
 async function tamperCache(mutate: (row: Record<string, unknown>) => void): Promise<void> {
   const db = await new Promise<IDBDatabase>((resolve, reject) => {
-    const req = indexedDB.open('reviewist', 2);
+    const req = indexedDB.open('reviewist', 3);
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
   });
