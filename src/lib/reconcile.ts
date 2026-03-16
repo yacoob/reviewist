@@ -21,7 +21,7 @@ export function reconcile(events: ActivityEvent[]): CompletedTask[] {
         byId.set(e.object_id, list);
       }
       list.push(e);
-    } else if (e.event_type === 'uncompleted') {
+    } else {
       byId.get(e.object_id)?.pop();
     }
   }

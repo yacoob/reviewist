@@ -7,6 +7,8 @@ import {
   saveExcludedProjects,
   loadRefreshInterval,
   saveRefreshInterval,
+  loadDebugEnabled,
+  saveDebugEnabled,
   BLOCKLIST,
 } from '../src/lib/storage';
 
@@ -83,5 +85,22 @@ describe('refresh interval', () => {
   it('stores and loads 0 correctly (auto-refresh off)', () => {
     saveRefreshInterval(0);
     expect(loadRefreshInterval()).toBe(0);
+  });
+});
+
+describe('debug enabled', () => {
+  it('returns false when unset', () => {
+    expect(loadDebugEnabled()).toBe(false);
+  });
+
+  it('round-trips true', () => {
+    saveDebugEnabled(true);
+    expect(loadDebugEnabled()).toBe(true);
+  });
+
+  it('round-trips false', () => {
+    saveDebugEnabled(true);
+    saveDebugEnabled(false);
+    expect(loadDebugEnabled()).toBe(false);
   });
 });

@@ -60,6 +60,29 @@ describe('groupTasksByDay', () => {
     expect(deduped[0].completed_at).toBe('2026-02-20T18:00:00Z');
   });
 
+  it('dedup keeps latest completed_at regardless of input order', () => {
+    const tasks = [
+      task({ id: 'c1', content: 'Repeater', completed_at: '2026-02-20T18:00:00Z' }),
+      task({ id: 'c2', content: 'Repeater', completed_at: '2026-02-20T08:00:00Z' }),
+    ];
+    const result = groupTasksByDay(tasks, projects);
+    const deduped = result[0].projectGroups[0].tasks;
+    expect(deduped).toHaveLength(1);
+    expect(deduped[0].completed_at).toBe('2026-02-20T18:00:00Z');
+    expect(deduped[0].count).toBe(2);
+  });
+
+  it('dedup handles tasks with identical timestamps', () => {
+    const tasks = [
+      task({ id: 'c1', content: 'Same time', completed_at: '2026-02-20T10:00:00Z' }),
+      task({ id: 'c2', content: 'Same time', completed_at: '2026-02-20T10:00:00Z' }),
+    ];
+    const result = groupTasksByDay(tasks, projects);
+    const deduped = result[0].projectGroups[0].tasks;
+    expect(deduped).toHaveLength(1);
+    expect(deduped[0].count).toBe(2);
+  });
+
   it('does not deduplicate tasks in different projects', () => {
     const tasks = [
       task({ content: 'Same name', project_id: 'p1' }),
@@ -99,6 +122,42 @@ describe('groupTasksByDay', () => {
       p1: { name: 'Work', color: 'neon_pink' },
     });
     expect(result[0].projectGroups[0].hex).toBeNull();
+  });
+
+  it('returns null hex for project with null color', () => {
+    const result = groupTasksByDay([task()], {
+      p1: { name: 'Work', color: null },
+    });
+    expect(result[0].projectGroups[0].hex).toBeNull();
+  });
+
+  it('handles tasks with empty project_id', () => {
+    const result = groupTasksByDay([task({ project_id: '' })], projects);
+    const group = result[0].projectGroups[0];
+    expect(group.unfiled).toBe(true);
+    expect(group.hex).toBe(TODOIST_COLORS.red);
+  });
+
+  it('handles tasks with empty content for dedup key', () => {
+    const tasks = [
+      task({ content: '', task_id: 't1', id: 'c1', completed_at: '2026-02-20T08:00:00Z' }),
+      task({ content: '', task_id: 't2', id: 'c2', completed_at: '2026-02-20T09:00:00Z' }),
+    ];
+    const result = groupTasksByDay(tasks, projects);
+    const deduped = result[0].projectGroups[0].tasks;
+    expect(deduped).toHaveLength(1);
+    expect(deduped[0].count).toBe(2);
+  });
+
+  it('sorts multiple unfiled groups by project_id', () => {
+    const tasks = [
+      task({ project_id: 'unknown_b', content: 'Task B' }),
+      task({ project_id: 'unknown_a', content: 'Task A' }),
+    ];
+    const result = groupTasksByDay(tasks, {});
+    const groups = result[0].projectGroups;
+    expect(groups).toHaveLength(2);
+    expect(groups.every(g => g.unfiled)).toBe(true);
   });
 
   it('sorts event project tasks alphabetically by first letter, ignoring emoji', () => {

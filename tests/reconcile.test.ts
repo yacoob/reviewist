@@ -107,6 +107,14 @@ describe('reconcile', () => {
     ]);
     expect(result).toEqual([]);
   });
+
+  it('handles events with identical timestamps', () => {
+    const result = reconcile([
+      ev({ object_id: 'a', event_date: '2026-02-20T10:00:00Z' }),
+      ev({ object_id: 'b', event_date: '2026-02-20T10:00:00Z' }),
+    ]);
+    expect(result).toHaveLength(2);
+  });
 });
 
 describe('blocklist filtering', () => {

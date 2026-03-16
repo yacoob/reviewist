@@ -94,4 +94,12 @@ describe('mergeEvents', () => {
     const merged = mergeEvents([], []);
     expect(merged).toHaveLength(0);
   });
+
+  it('preserves order for events with identical dates', () => {
+    vi.useFakeTimers({ now: new Date('2026-03-01T00:00:00Z') });
+    const a = event('a', '2026-02-20T10:00:00Z');
+    const b = event('b', '2026-02-20T10:00:00Z');
+    const merged = mergeEvents([a], [b]);
+    expect(merged).toHaveLength(2);
+  });
 });

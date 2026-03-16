@@ -18,18 +18,18 @@ interface DayGroup {
 
 function dedup(tasks: CompletedTask[]): DedupedTask[] {
   const sorted = [...tasks].sort((a, b) =>
-    (a.completed_at || '').localeCompare(b.completed_at || ''),
+    a.completed_at.localeCompare(b.completed_at),
   );
   const result: DedupedTask[] = [];
   const seen: Record<string, DedupedTask> = {};
   for (const t of sorted) {
-    const key = (t.content || '') + '||' + (t.project_id || '');
+    const key = t.content + '||' + t.project_id;
     if (seen[key]) {
       seen[key].count++;
-      seen[key].allTimes.push(t.completed_at || '');
+      seen[key].allTimes.push(t.completed_at);
       seen[key].completed_at = t.completed_at; // always latest — ascending sort above
     } else {
-      const entry: DedupedTask = { ...t, count: 1, allTimes: [t.completed_at || ''] };
+      const entry: DedupedTask = { ...t, count: 1, allTimes: [t.completed_at] };
       seen[key] = entry;
       result.push(entry);
     }
@@ -46,8 +46,7 @@ export function sortKey(content: string): string {
 function groupByProject(tasks: DedupedTask[], projects: Record<string, Project>, eventProjectId: string | null): ProjectGroup[] {
   const byProject: Record<string, DedupedTask[]> = {};
   for (const t of tasks) {
-    const pid = t.project_id || '';
-    (byProject[pid] ??= []).push(t);
+    (byProject[t.project_id] ??= []).push(t);
   }
 
   return Object.entries(byProject)
@@ -61,7 +60,7 @@ function groupByProject(tasks: DedupedTask[], projects: Record<string, Project>,
       return { projectId: pid, hex, unfiled, tasks };
     })
     .sort((a, b) => {
-      if (a.unfiled !== b.unfiled) return a.unfiled ? 1 : -1;
+      if (a.unfiled !== b.unfiled) return Number(a.unfiled) - Number(b.unfiled);
       const nameA = (projects[a.projectId]?.name || '').toLowerCase();
       const nameB = (projects[b.projectId]?.name || '').toLowerCase();
       return nameA.localeCompare(nameB);
@@ -71,7 +70,7 @@ function groupByProject(tasks: DedupedTask[], projects: Record<string, Project>,
 export function groupTasksByDay(tasks: CompletedTask[], projects: Record<string, Project>, eventProjectId: string | null = null): DayGroup[] {
   const grouped: Record<string, CompletedTask[]> = {};
   for (const t of tasks) {
-    const date = (t.completed_at || '').split('T')[0] || 'Unknown';
+    const date = t.completed_at.split('T')[0] || 'Unknown';
     (grouped[date] ??= []).push(t);
   }
 

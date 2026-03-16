@@ -1,7 +1,6 @@
 # Roadmap
 
 ## open questions and things to implement
-- better test coverage (includes dropping old code)
 - check if `event_date` is UTC and adjust to the local (?) timezone - otherwise a task completed at 11pm local time may show as the next day.
 
 ## possible future improvements
