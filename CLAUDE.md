@@ -57,7 +57,7 @@ Activity event shape:
 }
 ```
 
-Key fields: `extra_data.content` (task text, includes inline `@labels`), `event_date` (completion time), `parent_project_id` (may be null for deleted projects), `object_id` (task ID). The `id` field loses precision as a JSON float — use `object_id + event_date` as composite key instead.
+Key fields: `extra_data.content` (task text), `event_date` (completion time), `parent_project_id` (may be null for deleted projects), `object_id` (task ID). The `id` field loses precision as a JSON float — use `object_id + event_date` as composite key instead. Note: `@labels` from the task content do NOT appear in the activity log `extra_data.content` field.
 
 **Not available from the activity log:** section ID, due date, `is_recurring` flag, deadline, duration.
 
@@ -114,10 +114,13 @@ reviewist/
 │       ├── StatusMessage.svelte # Error/info/loading bar
 │       ├── FilterChips.svelte  # Project filter toggles with Todoist colors
 │       ├── TaskList.svelte     # Day grouping, dedup, renders TaskItems
-│       └── TaskItem.svelte     # Single task: check, content, label chips, project chip, time
+│       ├── TaskItem.svelte     # Single task: check, content, project chip, time
+│       └── DebugLog.svelte     # Collapsible debug log panel
 └── tests/
     ├── api.test.ts
-    ├── cache.test.ts
+    ├── cache.test.ts          # Happy-path cache tests (fake-indexeddb)
+    ├── cache-errors.test.ts   # IDB error callback tests (prototype patching)
+    ├── cache-upgrade.test.ts  # DB version upgrade test (isolated)
     ├── dates.test.ts
     ├── events.test.ts
     ├── reconcile.test.ts
@@ -132,7 +135,7 @@ reviewist/
 
 1. **Fetch**: Activity log events (`completed` + `uncompleted`) via paginated API calls
 2. **Reconcile**: Sort events chronologically, pair uncompletes with their preceding completes, produce `CompletedTask[]`
-3. **Display**: Group by day, dedup recurring tasks (×N badge), render with project colors and label chips
+3. **Display**: Group by day, dedup recurring tasks (×N badge), render with project colors
 
 #### Incremental fetching
 
@@ -162,7 +165,7 @@ A build-time blocklist (`src/blocklist.txt`, one task ID per line) filters out k
 
 ### Features
 
-- Token input with localStorage persistence, collapsible settings panel (⚙ toggle)
+- Token input with localStorage persistence, collapsible settings panel (⚙ toggle, `Ctrl+,` shortcut)
 - Fixed 6-week review window, displayed in header
 - IndexedDB cache: renders instantly from cached events, then incremental refresh
 - Configurable auto-refresh interval (off / 1m / 5m / 15m), persisted in localStorage
@@ -171,7 +174,6 @@ A build-time blocklist (`src/blocklist.txt`, one task ID per line) filters out k
 - Deduplicates repeated completions (recurring tasks): shows ×N badge, latest timestamp, tooltip with all timestamps
 - Project filter chips as multi-select toggles, colored with Todoist project colors
 - Project tags on tasks link to `https://app.todoist.com/app/project/{id}`
-- Inline `@label` parsing from task content, shown as clickable chips
 - Event tasks (uncompletable `* ` tasks from Aside project) shown with colored bullet instead of checkmark
 - Print-friendly CSS
 - Dark theme, JetBrains Mono + DM Sans typography
@@ -191,7 +193,8 @@ Tests live in `tests/` (project root), using vitest with jsdom environment. Non-
 
 - `pnpm validate` runs vitest, svelte-check, and eslint in sequence.
 - `tests/reconcile.test.ts` covers reconciliation: uncomplete cancellation, recurring task handling, out-of-order events.
-- `tests/cache.test.ts` covers cache round-trips and integrity check failures.
+- Cache tests are split across three files: `cache.test.ts` (round-trips, integrity checks, throw-based errors via fake-indexeddb), `cache-errors.test.ts` (IDB `onerror` callbacks via prototype patching), `cache-upgrade.test.ts` (DB version upgrade, isolated to avoid connection conflicts).
+- Coverage thresholds are enforced at 95% for statements, branches, functions, and lines.
 - When creating test tasks in Todoist for API experimentation, always delete them while uncompleted. Completing a test task and then deleting it leaves orphaned `completed` events in the activity log that will show up in Reviewist forever.
 
 ### SDK note
