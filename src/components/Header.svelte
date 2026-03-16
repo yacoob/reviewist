@@ -51,7 +51,7 @@
       <button class="refresh-indicator" onclick={onRefresh} disabled={fetching} title="Click to refresh">{indicatorText}</button>
     {/if}
     <button class="btn-bare" onclick={onSearch} title="Filter tasks (Ctrl+K)">⌕</button>
-    <button class="btn-bare" onclick={onToggleSetup} title="Settings">⚙</button>
+    <button class="btn-bare" onclick={onToggleSetup} title="Settings (Ctrl+,)">⚙</button>
   </div>
 </header>
 
@@ -121,6 +121,8 @@
     vertical-align: baseline;
   }
   .btn-bare:hover { color: var(--text); }
+  .btn-bare:focus-visible { outline: 2px solid var(--text-muted); outline-offset: 2px; }
+  .refresh-indicator:focus-visible { outline: 2px solid var(--text-muted); outline-offset: 2px; }
 
   @media print {
     .header-right { display: none; }

@@ -37,7 +37,7 @@ input, select {
   outline: none;
   transition: border-color 0.15s;
 }
-input:focus, select:focus { border-color: var(--accent); }
+input:focus, select:focus { border-color: var(--text-dim); }
 input[type="password"] { letter-spacing: 0.1em; }
 
 button {

@@ -75,13 +75,15 @@
   }
   .btn-primary { background: var(--accent); color: white; }
   .btn-primary:hover { opacity: 0.85; }
-  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-primary:focus-visible { outline: 2px solid var(--text-muted); outline-offset: 2px; }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
   .btn-secondary {
     background: var(--surface-3);
     color: var(--text-dim);
     border: 1px solid var(--border);
   }
   .btn-secondary:hover { color: var(--text); border-color: var(--text-muted); }
+  .btn-secondary:focus-visible { outline: 2px solid var(--text-muted); outline-offset: 2px; }
   .btn-small { font-size: 0.65rem; padding: 0.3rem 0.6rem; }
   .debug-check {
     display: flex;

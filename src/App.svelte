@@ -50,6 +50,10 @@
         openSearch();
       }
     }
+    if ((e.ctrlKey || e.metaKey) && e.key === ',') {
+      e.preventDefault();
+      setupVisible = !setupVisible;
+    }
   }
 
   function showStatus(msg: string, type: StatusType) {
@@ -111,7 +115,7 @@
 <svelte:window onkeydown={handleGlobalKey} />
 
 <div class="container">
-  <Header lastFetchTime={store.lastFetchTime} fetching={store.fetching} {searchQuery} onToggleSetup={() => (setupVisible = !setupVisible)} onRefresh={handleFetch} onSearch={openSearch} />
+  <Header lastFetchTime={store.lastFetchTime} fetching={store.fetching} {searchQuery} onToggleSetup={() => setupVisible = !setupVisible} onRefresh={handleFetch} onSearch={openSearch} />
   <SetupPanel
     visible={setupVisible}
     bind:token={store.token}
@@ -210,7 +214,7 @@
     outline: none;
     width: 100%;
   }
-  .search-input:focus { border-color: var(--accent); }
+  .search-input:focus { border-color: var(--text-dim); }
   .search-hint {
     font-family: 'JetBrains Mono', monospace;
     font-size: 0.6rem;

@@ -77,6 +77,10 @@
     color: var(--chip-color, var(--text-dim));
     border-color: color-mix(in srgb, var(--chip-color, var(--border)) 27%, transparent);
   }
+  .filter-chip:focus-visible {
+    outline: 2px solid var(--text-muted);
+    outline-offset: 1px;
+  }
   .filter-chip:not(.active):hover {
     opacity: 0.75;
     background: color-mix(in srgb, var(--chip-color, var(--text-dim)) 7%, transparent);
