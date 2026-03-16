@@ -58,8 +58,10 @@ export default defineConfig({
       include: ['src/lib/**'],
       exclude: ['src/lib/store.svelte.ts', 'src/lib/types.ts'],
       thresholds: {
-        statements: 90,
-        lines: 90,
+        statements: 95,
+        branches: 95,
+        functions: 95,
+        lines: 95,
       },
     },
   },
