@@ -34,7 +34,7 @@
   .debug-toggle:hover { color: var(--text-dim); }
   .debug-log {
     margin-top: 0.5rem;
-    font-size: 0.55rem;
+    font-size: 0.65rem;
     line-height: 1.6;
     color: var(--text-dim);
     background: var(--surface-2);

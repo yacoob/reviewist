@@ -78,8 +78,8 @@
     display: inline-block;
     width: 0.6rem;
     height: 0.6rem;
-    border: 2px solid var(--border);
-    border-top-color: var(--text-muted);
+    border: 2px solid var(--text-muted);
+    border-top-color: var(--text);
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
     vertical-align: middle;

@@ -91,7 +91,7 @@
     color: var(--text);
   }
   :global(.task-inline-link) {
-    color: var(--accent, #4a9eff);
+    color: #7aafff;
     text-decoration: none;
   }
   :global(.task-inline-link):hover { text-decoration: underline; }

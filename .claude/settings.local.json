@@ -21,7 +21,9 @@
       "mcp__svelte__get-documentation",
       "Bash(jj squash:*)",
       "Bash(pnpm build:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(jj describe:*)",
+      "Bash(jj new:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
