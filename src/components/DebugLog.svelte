@@ -4,7 +4,7 @@
   }
 
   let { entries }: Props = $props();
-  let visible = $state(false);
+  let visible = $state(true);
 </script>
 
 {#if entries.length > 0}
