@@ -2,14 +2,14 @@ import type { CompletedTask, DedupedTask, Project } from './types';
 import { TODOIST_COLORS } from './colors';
 import { formatDayLabel } from './dates';
 
-export interface ProjectGroup {
+interface ProjectGroup {
   projectId: string;
   hex: string | null;
   unfiled: boolean;
   tasks: DedupedTask[];
 }
 
-export interface DayGroup {
+interface DayGroup {
   day: string;
   label: string;
   taskCount: number;
@@ -27,9 +27,7 @@ function dedup(tasks: CompletedTask[]): DedupedTask[] {
     if (seen[key]) {
       seen[key].count++;
       seen[key].allTimes.push(t.completed_at || '');
-      if ((t.completed_at || '') > (seen[key].completed_at || '')) {
-        seen[key].completed_at = t.completed_at;
-      }
+      seen[key].completed_at = t.completed_at; // always latest — ascending sort above
     } else {
       const entry: DedupedTask = { ...t, count: 1, allTimes: [t.completed_at || ''] };
       seen[key] = entry;
