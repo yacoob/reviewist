@@ -6,6 +6,7 @@ import {
   loadToken, saveToken as persistToken, forgetToken as clearStoredToken,
   loadExcludedProjects, saveExcludedProjects,
   loadRefreshInterval, saveRefreshInterval,
+  loadDebugEnabled, saveDebugEnabled,
   BLOCKLIST,
 } from './storage';
 import { loadCachedState, saveCachedState, clearCachedState } from './cache';
@@ -14,6 +15,7 @@ import { newestEventDate, mergeEvents, SIX_WEEKS_MS, OVERLAP_MS } from './events
 
 let token = $state(loadToken());
 let refreshInterval = $state(loadRefreshInterval());
+let debugEnabled = $state(loadDebugEnabled());
 let excludedProjects: string[] = $state(loadExcludedProjects());
 let allTasks: CompletedTask[] = $state([]);
 let projects: Record<string, Project> = $state({});
@@ -23,6 +25,17 @@ let fetching = $state(false);
 // Internal event cache — not reactive, used for incremental fetch logic
 let cachedEvents: ActivityEvent[] = [];
 
+// Debug log ring buffer (visible in settings panel on mobile)
+const DEBUG_LOG_MAX = 50;
+let debugLog: string[] = $state([]);
+
+function pushLog(msg: string) {
+  const ts = new Date().toLocaleTimeString('en-GB', { hour12: false });
+  const entry = `${ts} ${msg}`;
+  console.log(`[store] ${msg}`);
+  debugLog = [...debugLog.slice(-(DEBUG_LOG_MAX - 1)), entry];
+}
+
 async function doFetch(): Promise<{ error?: string }> {
   const t0 = performance.now();
   let tPrev = t0;
@@ -30,7 +43,7 @@ async function doFetch(): Promise<{ error?: string }> {
     const now = performance.now();
     const delta = `+${Math.round(now - tPrev).toString().padStart(4)}ms`;
     tPrev = now;
-    console.log(`[store] ${delta}: ${msg}`);
+    pushLog(`${delta}: ${msg}`);
   };
 
   if (!token) {
@@ -38,7 +51,7 @@ async function doFetch(): Promise<{ error?: string }> {
   }
 
   fetching = true;
-  console.log(`[store] ${new Date().toISOString()} refresh started`);
+  pushLog('refresh started');
 
   // Load cache on first call (when we have no events in memory)
   if (cachedEvents.length === 0) {
@@ -113,7 +126,7 @@ async function doFetch(): Promise<{ error?: string }> {
     return { error: (e as Error).message };
   } finally {
     fetching = false;
-    console.log(`[store] ${new Date().toISOString()} refresh done (${Math.round(performance.now() - t0)}ms)`);
+    pushLog(`refresh done (${Math.round(performance.now() - t0)}ms)`);
   }
 }
 
@@ -136,6 +149,11 @@ function setRefreshInterval(ms: number) {
   saveRefreshInterval(ms);
 }
 
+function setDebugEnabled(on: boolean) {
+  debugEnabled = on;
+  saveDebugEnabled(on);
+}
+
 function toggleProject(pid: string) {
   const idx = excludedProjects.indexOf(pid);
   if (idx >= 0) {
@@ -155,10 +173,13 @@ export const store = {
   get projects() { return projects; },
   get lastFetchTime() { return lastFetchTime; },
   get fetching() { return fetching; },
+  get debugEnabled() { return debugEnabled; },
+  get debugLog() { return debugLog; },
 
   fetch: doFetch,
   saveToken: saveTokenValue,
   forgetToken,
   setRefreshInterval,
+  setDebugEnabled,
   toggleProject,
 };

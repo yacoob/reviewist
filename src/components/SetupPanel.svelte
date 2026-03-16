@@ -4,12 +4,14 @@
     token: string;
     fetching: boolean;
     refreshInterval: number;
+    debugEnabled: boolean;
     onFetch: () => void;
     onForget: () => void;
     onRefreshChange: (ms: number) => void;
+    onDebugChange: (on: boolean) => void;
   }
 
-  let { visible, token = $bindable(), fetching, refreshInterval, onFetch, onForget, onRefreshChange }: Props = $props();
+  let { visible, token = $bindable(), fetching, refreshInterval, debugEnabled, onFetch, onForget, onRefreshChange, onDebugChange }: Props = $props();
 </script>
 
 {#if visible}
@@ -39,6 +41,10 @@
       <button class="btn-secondary btn-small" onclick={onForget} title="Forget saved token">
         Forget
       </button>
+      <label class="debug-check">
+        <input type="checkbox" checked={debugEnabled} onchange={(e) => onDebugChange(e.currentTarget.checked)} />
+        Debug
+      </label>
     </div>
   </div>
 {/if}
@@ -77,6 +83,18 @@
   }
   .btn-secondary:hover { color: var(--text); border-color: var(--text-muted); }
   .btn-small { font-size: 0.65rem; padding: 0.3rem 0.6rem; }
+  .debug-check {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .debug-check input { cursor: pointer; }
 
   @media (max-width: 600px) {
     .setup-row { flex-direction: column; }

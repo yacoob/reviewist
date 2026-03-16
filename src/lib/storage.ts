@@ -1,6 +1,7 @@
 const TOKEN_KEY = 'reviewist_token';
 const EXCLUDED_KEY = 'reviewist_excluded';
 const REFRESH_KEY = 'reviewist_refresh';
+const DEBUG_KEY = 'reviewist_debug';
 
 export function loadToken(): string {
   return localStorage.getItem(TOKEN_KEY) ?? '';
@@ -35,6 +36,14 @@ export function loadRefreshInterval(): number {
 
 export function saveRefreshInterval(ms: number): void {
   localStorage.setItem(REFRESH_KEY, String(ms));
+}
+
+export function loadDebugEnabled(): boolean {
+  return localStorage.getItem(DEBUG_KEY) === '1';
+}
+
+export function saveDebugEnabled(on: boolean): void {
+  localStorage.setItem(DEBUG_KEY, on ? '1' : '0');
 }
 
 import blocklistRaw from '../blocklist.txt?raw';

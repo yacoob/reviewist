@@ -7,6 +7,7 @@
   import StatusMessage from './components/StatusMessage.svelte';
   import FilterChips from './components/FilterChips.svelte';
   import TaskList from './components/TaskList.svelte';
+  import DebugLog from './components/DebugLog.svelte';
 
   let statusMessage = $state('');
   let statusType: StatusType = $state(null);
@@ -116,11 +117,16 @@
     bind:token={store.token}
     fetching={store.fetching}
     refreshInterval={store.refreshInterval}
+    debugEnabled={store.debugEnabled}
     onFetch={handleFetch}
     onForget={handleForget}
     onRefreshChange={handleRefreshChange}
+    onDebugChange={(on) => store.setDebugEnabled(on)}
   />
   <StatusMessage message={statusMessage} type={statusType} />
+  {#if store.debugEnabled}
+    <DebugLog entries={store.debugLog} />
+  {/if}
 
   {#if !store.token && store.allTasks.length === 0}
     <div class="needs-token">
