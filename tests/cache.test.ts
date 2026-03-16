@@ -43,14 +43,17 @@ async function tamperCache(mutate: (row: Record<string, unknown>) => void): Prom
   });
 }
 
-beforeEach(async () => {
+function silenceConsole() {
   vi.spyOn(console, 'log').mockImplementation(() => {});
   vi.spyOn(console, 'warn').mockImplementation(() => {});
   vi.spyOn(console, 'error').mockImplementation(() => {});
-  await clearCachedState();
-});
+}
 
 describe('cache', () => {
+  beforeEach(async () => {
+    silenceConsole();
+    await clearCachedState();
+  });
   it('returns null when nothing is cached', async () => {
     expect(await loadCachedState()).toBeNull();
   });
@@ -89,5 +92,31 @@ describe('cache', () => {
     await saveCachedState([event('a')], projects);
     await tamperCache(row => { row.hash = 'deadbeef'; });
     expect(await loadCachedState()).toBeNull();
+  });
+});
+
+describe('cache error handling', () => {
+  beforeEach(() => silenceConsole());
+
+  it('loadCachedState returns null when IndexedDB throws', async () => {
+    const orig = indexedDB.open;
+    indexedDB.open = () => { throw new Error('DB broken'); };
+    try {
+      expect(await loadCachedState()).toBeNull();
+      expect(console.error).toHaveBeenCalledWith('[cache] load failed:', expect.any(Error));
+    } finally {
+      indexedDB.open = orig;
+    }
+  });
+
+  it('saveCachedState swallows errors when IndexedDB throws', async () => {
+    const orig = indexedDB.open;
+    indexedDB.open = () => { throw new Error('DB broken'); };
+    try {
+      await saveCachedState([event('a')], projects);
+      expect(console.error).toHaveBeenCalledWith('[cache] save failed:', expect.any(Error));
+    } finally {
+      indexedDB.open = orig;
+    }
   });
 });

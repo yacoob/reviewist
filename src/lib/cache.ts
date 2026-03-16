@@ -11,7 +11,8 @@ const DB_VERSION = 3;
 const STORE_NAME = 'cache';
 const CACHE_KEY = 'state';
 
-function openDB(): Promise<IDBDatabase> {
+/** @internal Exported for testing only. */
+export function openDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     const req = indexedDB.open(DB_NAME, DB_VERSION);
     req.onupgradeneeded = () => {
@@ -53,13 +54,10 @@ export async function loadCachedState(): Promise<CachedState | null> {
     }
 
     // Content hash check
-    const expected = row.hash as string;
-    if (expected) {
-      const actual = await computeHash(JSON.stringify(events));
-      if (actual !== expected) {
-        console.warn('[store] IndexedDB cache failed hash check, discarding');
-        return null;
-      }
+    const actual = await computeHash(JSON.stringify(events));
+    if (actual !== row.hash) {
+      console.warn('[store] IndexedDB cache failed hash check, discarding');
+      return null;
     }
 
     return { events, projects, fetchedAt };
