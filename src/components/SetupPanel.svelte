@@ -16,35 +16,34 @@
 
 {#if visible}
   <div class="setup">
-    <div class="setup-row">
-      <div class="field grow">
-        <label for="token-input">API Token</label>
-        <input
-          id="token-input"
-          type="password"
-          bind:value={token}
-          placeholder="Settings → Integrations → Developer"
-        />
-      </div>
-      <div class="field">
-        <label for="refresh-select">Auto-refresh</label>
-        <select id="refresh-select" value={refreshInterval} onchange={(e) => onRefreshChange(Number(e.currentTarget.value))}>
-          <option value={0}>Off</option>
-          <option value={60000}>1 min</option>
-          <option value={300000}>5 min</option>
-          <option value={900000}>15 min</option>
-        </select>
-      </div>
-      <button class="btn-primary" disabled={fetching} onclick={onFetch}>
+    <div class="input-group">
+      <input
+        id="token-input"
+        type="password"
+        bind:value={token}
+        placeholder="Settings → Integrations → Developer"
+      />
+      <button class="btn-fetch" disabled={fetching} onclick={onFetch}>
         {fetching ? '...' : 'Fetch'}
       </button>
-      <button class="btn-secondary btn-small" onclick={onForget} title="Forget saved token">
-        Forget
-      </button>
-      <label class="debug-check">
-        <input type="checkbox" checked={debugEnabled} onchange={(e) => onDebugChange(e.currentTarget.checked)} />
-        Debug
-      </label>
+    </div>
+    <div class="options-bar">
+      <div class="options-left">
+        <label class="option" for="refresh-select">
+          <span class="option-key">refresh</span>
+          <select id="refresh-select" value={refreshInterval} onchange={(e) => onRefreshChange(Number(e.currentTarget.value))}>
+            <option value={0}>off</option>
+            <option value={60000}>1m</option>
+            <option value={300000}>5m</option>
+            <option value={900000}>15m</option>
+          </select>
+        </label>
+        <label class="option" for="debug-check">
+          <span class="option-key">debug</span>
+          <input id="debug-check" type="checkbox" checked={debugEnabled} onchange={(e) => onDebugChange(e.currentTarget.checked)} />
+        </label>
+      </div>
+      <button class="btn-forget" onclick={onForget}>forget token</button>
     </div>
   </div>
 {/if}
@@ -54,53 +53,88 @@
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 8px;
-    padding: 1.25rem;
+    padding: 1rem 1.25rem;
     margin-bottom: 1.25rem;
-  }
-  .setup-row {
     display: flex;
-    gap: 0.75rem;
-    align-items: flex-end;
-    flex-wrap: wrap;
+    flex-direction: column;
+    gap: 0.6rem;
   }
-  .field { display: flex; flex-direction: column; gap: 0.3rem; }
-  .field.grow { flex: 1; min-width: 200px; }
-  .field label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.65rem;
-    font-weight: 500;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
+
+  /* Token input with attached Fetch button */
+  .input-group {
+    display: flex;
   }
-  .btn-primary { background: var(--accent); color: white; }
-  .btn-primary:hover { opacity: 0.85; }
-  .btn-primary:focus-visible { outline: 2px solid var(--text-muted); outline-offset: 2px; }
-  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-  .btn-secondary {
-    background: var(--surface-3);
-    color: var(--text-dim);
-    border: 1px solid var(--border);
+  .input-group input {
+    flex: 1;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    border-right: none;
+    min-width: 0;
   }
-  .btn-secondary:hover { color: var(--text); border-color: var(--text-muted); }
-  .btn-secondary:focus-visible { outline: 2px solid var(--text-muted); outline-offset: 2px; }
-  .btn-small { font-size: 0.65rem; padding: 0.3rem 0.6rem; }
-  .debug-check {
+  .btn-fetch {
+    background: var(--accent);
+    color: white;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    white-space: nowrap;
+  }
+  .btn-fetch:hover { opacity: 0.85; }
+  .btn-fetch:focus-visible { outline: 2px solid var(--text-muted); outline-offset: 2px; }
+  .btn-fetch:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* Options bar — compact row below the input */
+  .options-bar {
     display: flex;
     align-items: center;
-    gap: 0.3rem;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.65rem;
-    color: var(--text-muted);
-    cursor: pointer;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
+    justify-content: space-between;
+    padding-top: 0.1rem;
   }
-  .debug-check input { cursor: pointer; }
+  .options-left {
+    display: flex;
+    gap: 1.25rem;
+    align-items: center;
+  }
+  .option {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    cursor: pointer;
+  }
+  .option-key {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+  }
+  .option select {
+    font-size: 0.65rem;
+    padding: 0.2rem 0.35rem;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    color: var(--text-dim);
+  }
+  .option select:focus { border-color: var(--text-dim); }
+  .option input[type="checkbox"] { cursor: pointer; }
+
+  /* Forget — subtle text link, right side */
+  .btn-forget {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.55rem;
+    padding: 0;
+    cursor: pointer;
+    opacity: 0.5;
+    transition: opacity 0.15s;
+    letter-spacing: 0.04em;
+  }
+  .btn-forget:hover { opacity: 1; color: var(--text-dim); }
+  .btn-forget:focus-visible { outline: 2px solid var(--text-muted); outline-offset: 2px; }
 
   @media (max-width: 600px) {
-    .setup-row { flex-direction: column; }
-    .field.grow { min-width: 100%; }
+    .options-bar { flex-wrap: wrap; gap: 0.5rem; }
   }
 
   @media print {
