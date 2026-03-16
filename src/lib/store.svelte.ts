@@ -77,7 +77,6 @@ async function doFetch(): Promise<{ error?: string }> {
   const since = newest
     ? fmtDate(new Date(new Date(newest).getTime() - OVERLAP_MS))
     : fmtDate(new Date(Date.now() - SIX_WEEKS_MS));
-  const until = fmtDate(new Date());
 
   const incremental = !!newest;
   log(`fetching events from API (${incremental ? 'incremental' : 'full'}, since=${since})`);
@@ -85,7 +84,7 @@ async function doFetch(): Promise<{ error?: string }> {
   try {
     const [projMap, newEvents] = await Promise.all([
       fetchProjects(token),
-      fetchActivityEvents(token, since, until),
+      fetchActivityEvents(token, since),
     ]);
     log(`API returned ${newEvents.length} events, ${Object.keys(projMap).length} projects`);
 

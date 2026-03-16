@@ -34,19 +34,13 @@ export async function fetchProjects(
 export async function fetchActivityEvents(
   token: string,
   since: string,
-  until: string,
 ): Promise<ActivityEvent[]> {
-  const dayAfterUntil = new Date(until + 'T00:00:00');
-  dayAfterUntil.setDate(dayAfterUntil.getDate() + 1);
-  const dateTo = dayAfterUntil.toISOString().slice(0, 10);
-
   const allEvents: ActivityEvent[] = [];
   let cursor: string | undefined;
 
   while (true) {
     const params = new URLSearchParams({
       date_from: since,
-      date_to: dateTo,
       object_event_types: JSON.stringify(['item:completed', 'item:uncompleted']),
       limit: String(PAGE_LIMIT),
     });

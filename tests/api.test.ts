@@ -75,7 +75,7 @@ describe('fetchActivityEvents', () => {
   it('returns events from a single page', async () => {
     globalThis.fetch = mockFetch({ results: [sampleEvent] });
 
-    const result = await fetchActivityEvents('tok', '2026-02-19', '2026-02-20');
+    const result = await fetchActivityEvents('tok', '2026-02-19');
     expect(result).toEqual([sampleEvent]);
   });
 
@@ -101,7 +101,7 @@ describe('fetchActivityEvents', () => {
       });
     });
 
-    const result = await fetchActivityEvents('tok', '2026-02-19', '2026-02-20');
+    const result = await fetchActivityEvents('tok', '2026-02-19');
     expect(result).toEqual([event1, event2, event3]);
     expect(callCount).toBe(2);
 
@@ -113,7 +113,7 @@ describe('fetchActivityEvents', () => {
   it('returns empty array when results is missing', async () => {
     globalThis.fetch = mockFetch({});
 
-    const result = await fetchActivityEvents('tok', '2026-02-19', '2026-02-20');
+    const result = await fetchActivityEvents('tok', '2026-02-19');
     expect(result).toEqual([]);
   });
 
@@ -121,13 +121,12 @@ describe('fetchActivityEvents', () => {
     const fn = mockFetch({ results: [] });
     globalThis.fetch = fn;
 
-    await fetchActivityEvents('tok', '2026-02-01', '2026-02-07');
+    await fetchActivityEvents('tok', '2026-02-01');
 
     const url = fn.mock.calls[0][0] as string;
     expect(url).toContain('api.todoist.com/api/v1/activities');
     expect(url).toContain('date_from=2026-02-01');
-    // date_to is day after until
-    expect(url).toContain('date_to=2026-02-08');
+    expect(url).not.toContain('date_to');
     expect(url).toContain('object_event_types=' + encodeURIComponent(JSON.stringify(['item:completed', 'item:uncompleted'])));
     expect(url).toContain('limit=100');
   });
@@ -136,7 +135,7 @@ describe('fetchActivityEvents', () => {
     const fn = mockFetch({ results: [] });
     globalThis.fetch = fn;
 
-    await fetchActivityEvents('tok', '2026-02-01', '2026-02-07');
+    await fetchActivityEvents('tok', '2026-02-01');
 
     expect(fn).toHaveBeenCalledWith(
       expect.stringContaining('activities'),
@@ -146,7 +145,7 @@ describe('fetchActivityEvents', () => {
 
   it('throws on HTTP error', async () => {
     globalThis.fetch = mockFetch('Unauthorized', 401);
-    await expect(fetchActivityEvents('bad', '2026-02-01', '2026-02-07')).rejects.toThrow('HTTP 401');
+    await expect(fetchActivityEvents('bad', '2026-02-01')).rejects.toThrow('HTTP 401');
   });
 
   it('throws on HTTP error mid-pagination', async () => {
@@ -167,6 +166,6 @@ describe('fetchActivityEvents', () => {
       });
     });
 
-    await expect(fetchActivityEvents('tok', '2026-02-01', '2026-02-07')).rejects.toThrow('HTTP 500');
+    await expect(fetchActivityEvents('tok', '2026-02-01')).rejects.toThrow('HTTP 500');
   });
 });
