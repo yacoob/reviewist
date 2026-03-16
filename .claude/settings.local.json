@@ -23,7 +23,10 @@
       "Bash(pnpm build:*)",
       "Bash(grep:*)",
       "Bash(jj describe:*)",
-      "Bash(jj new:*)"
+      "Bash(jj new:*)",
+      "Bash(pnpm test:*)",
+      "Bash(pnpm vitest:*)",
+      "Bash(jj split:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
