@@ -37,11 +37,11 @@ function dedup(tasks: CompletedTask[]): DedupedTask[] {
   return result;
 }
 
-/** Sort order: event projects first, then regular, unfiled last. Alphabetical within each tier. */
-export function compareProjects(a: string, b: string, projects: Record<string, Project>, eventProjectIds: Set<string>): number {
+/** Sort order: note projects first, then regular, unfiled last. Alphabetical within each tier. */
+export function compareProjects(a: string, b: string, projects: Record<string, Project>, noteProjectIds: Set<string>): number {
   function tier(id: string): number {
     if (!projects[id]?.name) return 2;  // unfiled
-    if (eventProjectIds.has(id)) return 0;  // event
+    if (noteProjectIds.has(id)) return 0;  // note
     return 1;  // regular
   }
   const t = tier(a) - tier(b);
@@ -55,7 +55,7 @@ export function sortKey(content: string): string {
   return m ? m[0].toLowerCase() : content.toLowerCase();
 }
 
-function groupByProject(tasks: DedupedTask[], projects: Record<string, Project>, eventProjectIds: Set<string>): ProjectGroup[] {
+function groupByProject(tasks: DedupedTask[], projects: Record<string, Project>, noteProjectIds: Set<string>): ProjectGroup[] {
   const byProject: Record<string, DedupedTask[]> = {};
   for (const t of tasks) {
     (byProject[t.project_id] ??= []).push(t);
@@ -66,15 +66,15 @@ function groupByProject(tasks: DedupedTask[], projects: Record<string, Project>,
       const proj = projects[pid];
       const unfiled = !proj?.name;
       const hex = unfiled ? TODOIST_COLORS.red : (proj?.color ? TODOIST_COLORS[proj.color] || null : null);
-      if (eventProjectIds.has(pid)) {
+      if (noteProjectIds.has(pid)) {
         tasks.sort((a, b) => sortKey(a.content).localeCompare(sortKey(b.content)));
       }
       return { projectId: pid, hex, unfiled, tasks };
     })
-    .sort((a, b) => compareProjects(a.projectId, b.projectId, projects, eventProjectIds));
+    .sort((a, b) => compareProjects(a.projectId, b.projectId, projects, noteProjectIds));
 }
 
-export function groupTasksByDay(tasks: CompletedTask[], projects: Record<string, Project>, eventProjectIds: Set<string> = new Set()): DayGroup[] {
+export function groupTasksByDay(tasks: CompletedTask[], projects: Record<string, Project>, noteProjectIds: Set<string> = new Set()): DayGroup[] {
   const grouped: Record<string, CompletedTask[]> = {};
   for (const t of tasks) {
     const date = t.completed_at ? fmtLocalDate(new Date(t.completed_at)) : 'Unknown';
@@ -86,7 +86,7 @@ export function groupTasksByDay(tasks: CompletedTask[], projects: Record<string,
     .reverse()
     .map((day) => {
       const deduped = dedup(grouped[day]);
-      const projectGroups = groupByProject(deduped, projects, eventProjectIds);
+      const projectGroups = groupByProject(deduped, projects, noteProjectIds);
       const label = day === 'Unknown' ? 'Unknown date' : formatDayLabel(day);
       return { day, label, taskCount: deduped.length, projectGroups };
     });

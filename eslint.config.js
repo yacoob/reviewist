@@ -12,7 +12,7 @@ export default tseslint.config(
     languageOptions: {
       globals: {
         ...globals.browser,
-        __EVENT_PROJECTS__: 'readonly',
+        __NOTE_PROJECTS__: 'readonly',
       },
     },
   },

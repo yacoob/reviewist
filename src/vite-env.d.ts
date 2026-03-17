@@ -1,3 +1,3 @@
 /// <reference types="vite/client" />
 
-declare const __EVENT_PROJECTS__: string[];
+declare const __NOTE_PROJECTS__: string[];

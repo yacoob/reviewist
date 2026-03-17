@@ -10,11 +10,11 @@
     tasks: CompletedTask[];
     excludedProjects: string[];
     projects: Record<string, Project>;
-    eventProjectIds: Set<string>;
+    noteProjectIds: Set<string>;
     searchQuery?: string;
   }
 
-  let { tasks, excludedProjects, projects, eventProjectIds, searchQuery = '' }: Props = $props();
+  let { tasks, excludedProjects, projects, noteProjectIds, searchQuery = '' }: Props = $props();
 
   let searchRegex = $derived.by(() => {
     if (!searchQuery) return null;
@@ -34,7 +34,7 @@
     }),
   );
 
-  let days = $derived(groupTasksByDay(filteredTasks, projects, eventProjectIds));
+  let days = $derived(groupTasksByDay(filteredTasks, projects, noteProjectIds));
 
   function d(ms: number) { return prefersReducedMotion.current ? 0 : ms; }
 </script>
@@ -71,7 +71,7 @@
               out:fade={{ duration: d(100) }}
               animate:flip={{ duration: d(200) }}
             >
-              <TaskItem {task} isEvent={eventProjectIds.has(group.projectId)} />
+              <TaskItem {task} isNote={noteProjectIds.has(group.projectId)} />
             </div>
           {/each}
         </div>

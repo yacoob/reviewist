@@ -166,7 +166,7 @@ describe('groupTasksByDay', () => {
     expect(groups.every(g => g.unfiled)).toBe(true);
   });
 
-  it('sorts event projects before regular projects, both alphabetically', () => {
+  it('sorts note projects before regular projects, both alphabetically', () => {
     const mixedProjects: Record<string, Project> = {
       ev1: { name: 'Within', color: 'grey' },
       ev2: { name: 'Aside', color: 'grey' },
@@ -175,30 +175,30 @@ describe('groupTasksByDay', () => {
     };
     const tasks = [
       task({ project_id: 'reg1', content: 'Work task', task_id: 't1', id: 'c1' }),
-      task({ project_id: 'ev1', content: 'Within event', task_id: 't2', id: 'c2' }),
+      task({ project_id: 'ev1', content: 'Within note', task_id: 't2', id: 'c2' }),
       task({ project_id: 'reg2', content: 'Home task', task_id: 't3', id: 'c3' }),
-      task({ project_id: 'ev2', content: 'Aside event', task_id: 't4', id: 'c4' }),
+      task({ project_id: 'ev2', content: 'Aside note', task_id: 't4', id: 'c4' }),
     ];
     const result = groupTasksByDay(tasks, mixedProjects, new Set(['ev1', 'ev2']));
     const order = result[0].projectGroups.map(g => g.projectId);
     expect(order).toEqual(['ev2', 'ev1', 'reg2', 'reg1']); // Aside, Within, Home, Work
   });
 
-  it('sorts event project tasks alphabetically by first letter, ignoring emoji', () => {
-    const eventProjects: Record<string, Project> = {
-      ev: { name: 'Events', color: 'grey' },
+  it('sorts note project tasks alphabetically by first letter, ignoring emoji', () => {
+    const noteProjects: Record<string, Project> = {
+      ev: { name: 'Notes', color: 'grey' },
     };
     const tasks = [
-      task({ content: 'Zebra event', project_id: 'ev', task_id: 't1', id: 'c1', completed_at: '2026-02-20T10:00:00Z' }),
-      task({ content: '🎉 Alpha event', project_id: 'ev', task_id: 't2', id: 'c2', completed_at: '2026-02-20T11:00:00Z' }),
-      task({ content: 'middle event', project_id: 'ev', task_id: 't3', id: 'c3', completed_at: '2026-02-20T09:00:00Z' }),
+      task({ content: 'Zebra note', project_id: 'ev', task_id: 't1', id: 'c1', completed_at: '2026-02-20T10:00:00Z' }),
+      task({ content: '🎉 Alpha note', project_id: 'ev', task_id: 't2', id: 'c2', completed_at: '2026-02-20T11:00:00Z' }),
+      task({ content: 'middle note', project_id: 'ev', task_id: 't3', id: 'c3', completed_at: '2026-02-20T09:00:00Z' }),
     ];
-    const result = groupTasksByDay(tasks, eventProjects, new Set(['ev']));
+    const result = groupTasksByDay(tasks, noteProjects, new Set(['ev']));
     const sorted = result[0].projectGroups[0].tasks;
     expect(sorted.map(t => t.content)).toEqual([
-      '🎉 Alpha event',
-      'middle event',
-      'Zebra event',
+      '🎉 Alpha note',
+      'middle note',
+      'Zebra note',
     ]);
   });
 });
@@ -232,23 +232,23 @@ describe('compareProjects', () => {
     reg1: { name: 'Home', color: 'green' },
     reg2: { name: 'Work', color: 'blue' },
   };
-  const eventIds = new Set(['ev1', 'ev2']);
+  const noteIds = new Set(['ev1', 'ev2']);
 
-  it('sorts event projects before regular projects', () => {
-    expect(compareProjects('ev1', 'reg1', testProjects, eventIds)).toBeLessThan(0);
-    expect(compareProjects('reg1', 'ev2', testProjects, eventIds)).toBeGreaterThan(0);
+  it('sorts note projects before regular projects', () => {
+    expect(compareProjects('ev1', 'reg1', testProjects, noteIds)).toBeLessThan(0);
+    expect(compareProjects('reg1', 'ev2', testProjects, noteIds)).toBeGreaterThan(0);
   });
 
-  it('sorts event projects alphabetically among themselves', () => {
-    expect(compareProjects('ev1', 'ev2', testProjects, eventIds)).toBeLessThan(0); // Aside < Within
+  it('sorts note projects alphabetically among themselves', () => {
+    expect(compareProjects('ev1', 'ev2', testProjects, noteIds)).toBeLessThan(0); // Aside < Within
   });
 
   it('sorts regular projects alphabetically among themselves', () => {
-    expect(compareProjects('reg1', 'reg2', testProjects, eventIds)).toBeLessThan(0); // Home < Work
+    expect(compareProjects('reg1', 'reg2', testProjects, noteIds)).toBeLessThan(0); // Home < Work
   });
 
   it('sorts unfiled projects last', () => {
-    expect(compareProjects('missing', 'reg1', testProjects, eventIds)).toBeGreaterThan(0);
-    expect(compareProjects('missing', 'ev1', testProjects, eventIds)).toBeGreaterThan(0);
+    expect(compareProjects('missing', 'reg1', testProjects, noteIds)).toBeGreaterThan(0);
+    expect(compareProjects('missing', 'ev1', testProjects, noteIds)).toBeGreaterThan(0);
   });
 });

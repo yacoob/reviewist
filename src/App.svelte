@@ -13,9 +13,9 @@
   let statusType: StatusType = $state(null);
   let setupVisible = $state(false);
 
-  let eventProjectIds = $derived(
+  let noteProjectIds = $derived(
     new Set(
-      __EVENT_PROJECTS__
+      __NOTE_PROJECTS__
         .map((name) => Object.entries(store.projects).find(([, p]) => p.name === name)?.[0])
         .filter((id): id is string => id != null),
     ),
@@ -159,11 +159,11 @@
     <FilterChips
       tasks={store.allTasks}
       projects={store.projects}
-      {eventProjectIds}
+      {noteProjectIds}
       excludedProjects={store.excludedProjects}
       onToggle={handleToggleProject}
     />
-    <TaskList tasks={store.allTasks} excludedProjects={store.excludedProjects} projects={store.projects} {eventProjectIds} {searchQuery} />
+    <TaskList tasks={store.allTasks} excludedProjects={store.excludedProjects} projects={store.projects} {noteProjectIds} {searchQuery} />
   {/if}
 </div>
 

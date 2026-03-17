@@ -4,13 +4,13 @@
 
   interface Props {
     task: DedupedTask;
-    isEvent?: boolean;
+    isNote?: boolean;
   }
 
-  let { task, isEvent = false }: Props = $props();
+  let { task, isNote = false }: Props = $props();
 
   let rawContent = $derived(task.content || task.task_id || '?');
-  let strippedContent = $derived(isEvent ? rawContent.replace(/^\*\s+/, '') : rawContent);
+  let strippedContent = $derived(isNote ? rawContent.replace(/^\*\s+/, '') : rawContent);
   type ContentPart = { type: 'text'; text: string } | { type: 'link'; text: string; href: string };
   let contentParts: ContentPart[] = $derived((() => {
     const parts: ContentPart[] = [];
@@ -33,7 +33,7 @@
 </script>
 
 <div class="task-item">
-  {#if !isEvent}
+  {#if !isNote}
     <a
       class="task-time"
       class:has-tooltip={task.count > 1 && !!latestTime}
@@ -42,7 +42,7 @@
       target="_blank">{latestTime}</a>
     <span class="task-check">✓</span>
   {/if}
-  <span class="task-content">{#each contentParts as part, i (i)}{#if part.type === 'link'}<a class="task-inline-link" href={part.href} target="_blank">{part.text}</a>{:else}{part.text}{/if}{/each}{#if !isEvent && task.count > 1}&nbsp;<span class="task-count">(×{task.count})</span>{/if}</span>
+  <span class="task-content">{#each contentParts as part, i (i)}{#if part.type === 'link'}<a class="task-inline-link" href={part.href} target="_blank">{part.text}</a>{:else}{part.text}{/if}{/each}{#if !isNote && task.count > 1}&nbsp;<span class="task-count">(×{task.count})</span>{/if}</span>
 </div>
 
 <style>

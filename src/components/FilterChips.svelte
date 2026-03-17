@@ -6,12 +6,12 @@
   interface Props {
     tasks: CompletedTask[];
     projects: Record<string, Project>;
-    eventProjectIds: Set<string>;
+    noteProjectIds: Set<string>;
     excludedProjects: string[];
     onToggle: (projectId: string) => void;
   }
 
-  let { tasks, projects, eventProjectIds, excludedProjects, onToggle }: Props = $props();
+  let { tasks, projects, noteProjectIds, excludedProjects, onToggle }: Props = $props();
 
   let sortedProjects = $derived.by(() => {
     const counts: Record<string, number> = {};
@@ -19,7 +19,7 @@
       counts[t.project_id] = (counts[t.project_id] || 0) + 1;
     }
     return Object.entries(counts).sort((a, b) =>
-      compareProjects(a[0], b[0], projects, eventProjectIds),
+      compareProjects(a[0], b[0], projects, noteProjectIds),
     );
   });
 
