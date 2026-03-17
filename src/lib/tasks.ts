@@ -37,19 +37,16 @@ function dedup(tasks: CompletedTask[]): DedupedTask[] {
   return result;
 }
 
-/** Compare two project IDs for sorting: event projects first (alphabetically), then the rest (alphabetically), unfiled last. */
+/** Sort order: event projects first, then regular, unfiled last. Alphabetical within each tier. */
 export function compareProjects(a: string, b: string, projects: Record<string, Project>, eventProjectIds: Set<string>): number {
-  const projA = projects[a];
-  const projB = projects[b];
-  const unfiledA = !projA?.name;
-  const unfiledB = !projB?.name;
-  if (unfiledA !== unfiledB) return Number(unfiledA) - Number(unfiledB);
-  const eventA = eventProjectIds.has(a);
-  const eventB = eventProjectIds.has(b);
-  if (eventA !== eventB) return eventA ? -1 : 1;
-  const nameA = (projA?.name || '').toLowerCase();
-  const nameB = (projB?.name || '').toLowerCase();
-  return nameA.localeCompare(nameB);
+  function tier(id: string): number {
+    if (!projects[id]?.name) return 2;  // unfiled
+    if (eventProjectIds.has(id)) return 0;  // event
+    return 1;  // regular
+  }
+  const t = tier(a) - tier(b);
+  if (t !== 0) return t;
+  return (projects[a]?.name || '').toLowerCase().localeCompare((projects[b]?.name || '').toLowerCase());
 }
 
 /** Return the first letter (ignoring leading emoji/symbols), lowercased. */
