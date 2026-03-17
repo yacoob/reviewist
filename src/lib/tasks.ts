@@ -43,7 +43,7 @@ export function sortKey(content: string): string {
   return m ? m[0].toLowerCase() : content.toLowerCase();
 }
 
-function groupByProject(tasks: DedupedTask[], projects: Record<string, Project>, eventProjectId: string | null): ProjectGroup[] {
+function groupByProject(tasks: DedupedTask[], projects: Record<string, Project>, eventProjectIds: Set<string>): ProjectGroup[] {
   const byProject: Record<string, DedupedTask[]> = {};
   for (const t of tasks) {
     (byProject[t.project_id] ??= []).push(t);
@@ -54,7 +54,7 @@ function groupByProject(tasks: DedupedTask[], projects: Record<string, Project>,
       const proj = projects[pid];
       const unfiled = !proj?.name;
       const hex = unfiled ? TODOIST_COLORS.red : (proj?.color ? TODOIST_COLORS[proj.color] || null : null);
-      if (pid === eventProjectId) {
+      if (eventProjectIds.has(pid)) {
         tasks.sort((a, b) => sortKey(a.content).localeCompare(sortKey(b.content)));
       }
       return { projectId: pid, hex, unfiled, tasks };
@@ -67,7 +67,7 @@ function groupByProject(tasks: DedupedTask[], projects: Record<string, Project>,
     });
 }
 
-export function groupTasksByDay(tasks: CompletedTask[], projects: Record<string, Project>, eventProjectId: string | null = null): DayGroup[] {
+export function groupTasksByDay(tasks: CompletedTask[], projects: Record<string, Project>, eventProjectIds: Set<string> = new Set()): DayGroup[] {
   const grouped: Record<string, CompletedTask[]> = {};
   for (const t of tasks) {
     const date = t.completed_at ? fmtLocalDate(new Date(t.completed_at)) : 'Unknown';
@@ -79,7 +79,7 @@ export function groupTasksByDay(tasks: CompletedTask[], projects: Record<string,
     .reverse()
     .map((day) => {
       const deduped = dedup(grouped[day]);
-      const projectGroups = groupByProject(deduped, projects, eventProjectId);
+      const projectGroups = groupByProject(deduped, projects, eventProjectIds);
       const label = day === 'Unknown' ? 'Unknown date' : formatDayLabel(day);
       return { day, label, taskCount: deduped.length, projectGroups };
     });

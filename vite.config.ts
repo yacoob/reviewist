@@ -5,7 +5,7 @@ import generateIcons from './scripts/generate-icons.ts';
 
 export default defineConfig({
   define: {
-    __EVENT_PROJECT__: JSON.stringify('Aside'),
+    __EVENT_PROJECTS__: JSON.stringify(['Aside', 'Within']),
   },
   plugins: [
     svelte(),

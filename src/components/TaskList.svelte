@@ -33,11 +33,15 @@
     }),
   );
 
-  let eventProjectId = $derived(
-    Object.entries(projects).find(([, p]) => p.name === __EVENT_PROJECT__)?.[0] ?? null,
+  let eventProjectIds = $derived(
+    new Set(
+      __EVENT_PROJECTS__
+        .map((name) => Object.entries(projects).find(([, p]) => p.name === name)?.[0])
+        .filter((id): id is string => id != null),
+    ),
   );
 
-  let days = $derived(groupTasksByDay(filteredTasks, projects, eventProjectId));
+  let days = $derived(groupTasksByDay(filteredTasks, projects, eventProjectIds));
 
   function d(ms: number) { return prefersReducedMotion.current ? 0 : ms; }
 </script>
@@ -74,7 +78,7 @@
               out:fade={{ duration: d(100) }}
               animate:flip={{ duration: d(200) }}
             >
-              <TaskItem {task} isEvent={group.projectId === eventProjectId} />
+              <TaskItem {task} isEvent={eventProjectIds.has(group.projectId)} />
             </div>
           {/each}
         </div>

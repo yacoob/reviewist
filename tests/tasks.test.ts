@@ -175,7 +175,7 @@ describe('groupTasksByDay', () => {
       task({ content: '🎉 Alpha event', project_id: 'ev', task_id: 't2', id: 'c2', completed_at: '2026-02-20T11:00:00Z' }),
       task({ content: 'middle event', project_id: 'ev', task_id: 't3', id: 'c3', completed_at: '2026-02-20T09:00:00Z' }),
     ];
-    const result = groupTasksByDay(tasks, eventProjects, 'ev');
+    const result = groupTasksByDay(tasks, eventProjects, new Set(['ev']));
     const sorted = result[0].projectGroups[0].tasks;
     expect(sorted.map(t => t.content)).toEqual([
       '🎉 Alpha event',
