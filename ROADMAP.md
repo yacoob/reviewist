@@ -2,7 +2,7 @@
 
 ## CLI Export Tool
 
-Standalone Deno-compiled binary that fetches completed actions from the Todoist Activity Log, reconciles them, and writes structured JSON to stdout. Shares core logic with Reviewist — no code duplication.
+Standalone Bun-compiled binary that fetches completed actions from the Todoist Activity Log, reconciles them, and writes structured JSON to stdout. Shares core logic with Reviewist — no code duplication. Bun also replaces Node as the project's runtime (Vite, vitest, svelte-check all run on Bun).
 
 ### Invocation
 
@@ -62,29 +62,33 @@ Actions are sorted by `completed_at` ascending (handled by `reconcile()`).
 ```
 cli/
   main.ts          # Entry point: arg parsing, orchestration, JSON output
-  deno.json        # Deno config: compilerOptions, import map for src/lib/ paths
 ```
 
 `main.ts` flow:
-1. Read `TODOIST_TOKEN` from `Deno.env`
+1. Read `TODOIST_TOKEN` from `process.env`
 2. Parse args (since, until, note-projects, blocklist)
 3. `fetchProjects()` + `fetchActivityEvents(token, since, until)` in parallel
 4. `reconcile()` the events (returns sorted by `completed_at`)
 5. Filter by `BLOCKLIST` + any additional IDs from `--blocklist`
 6. Serialize: add `is_note` flag per action, filter projects map to referenced IDs only
-8. Write JSON to stdout
+7. Write JSON to stdout
 
-### Deno compatibility
+### Bun compatibility
 
-- `api.ts` uses global `fetch()` — works in Deno natively
+- `api.ts` uses global `fetch()` — works in Bun natively
 - `reconcile.ts`, `dates.ts`, `events.ts`, `colors.ts` — pure functions, no browser APIs
 - `storage.ts`, `cache.ts`, `store.svelte.ts` — not imported by CLI
-- Deno-specific APIs confined to `cli/main.ts`: `Deno.args`, `Deno.env`, `Deno.readTextFile`
-- Existing source uses extensionless imports (e.g. `from './types'`). The `deno.json` config will need `compilerOptions` or `--unstable-sloppy-imports` to handle this. Alternatively, `cli/main.ts` can use explicit `.ts` extensions for its own imports from `src/lib/`.
+- No import resolution issues — Bun uses Node-compatible module resolution, matching the existing extensionless imports
+- Bun also replaces Node for the web app dev workflow (Vite, vitest, svelte-check, eslint)
 
 ### Build
 
-`deno compile` targeting `cli/main.ts`, producing a `reviewist-export` binary.
+`bun build --compile cli/main.ts --outfile reviewist-export` producing a single binary.
+
+### Runtime migration
+
+- `mise.toml`: replace `node = "22"` with `bun = "latest"`, keep `pnpm` (Bun is the runtime, pnpm remains the package manager)
+- All `pnpm` scripts (`dev`, `build`, `test`, `validate`, etc.) work unchanged — Bun is a drop-in Node replacement
 
 ## Future ideas
 
