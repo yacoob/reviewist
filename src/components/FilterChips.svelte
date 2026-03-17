@@ -1,26 +1,26 @@
 <script lang="ts">
   import type { CompletedTask, Project } from '../lib/types';
   import { TODOIST_COLORS } from '../lib/colors';
+  import { compareProjects } from '../lib/tasks';
 
   interface Props {
     tasks: CompletedTask[];
     projects: Record<string, Project>;
+    eventProjectIds: Set<string>;
     excludedProjects: string[];
     onToggle: (projectId: string) => void;
   }
 
-  let { tasks, projects, excludedProjects, onToggle }: Props = $props();
+  let { tasks, projects, eventProjectIds, excludedProjects, onToggle }: Props = $props();
 
   let sortedProjects = $derived.by(() => {
     const counts: Record<string, number> = {};
     for (const t of tasks) {
       counts[t.project_id] = (counts[t.project_id] || 0) + 1;
     }
-    return Object.entries(counts).sort((a, b) => {
-      const nameA = (projects[a[0]]?.name || '').toLowerCase();
-      const nameB = (projects[b[0]]?.name || '').toLowerCase();
-      return nameA.localeCompare(nameB);
-    });
+    return Object.entries(counts).sort((a, b) =>
+      compareProjects(a[0], b[0], projects, eventProjectIds),
+    );
   });
 
   function chipColor(pid: string): string | null {

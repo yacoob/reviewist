@@ -37,6 +37,21 @@ function dedup(tasks: CompletedTask[]): DedupedTask[] {
   return result;
 }
 
+/** Compare two project IDs for sorting: event projects first (alphabetically), then the rest (alphabetically), unfiled last. */
+export function compareProjects(a: string, b: string, projects: Record<string, Project>, eventProjectIds: Set<string>): number {
+  const projA = projects[a];
+  const projB = projects[b];
+  const unfiledA = !projA?.name;
+  const unfiledB = !projB?.name;
+  if (unfiledA !== unfiledB) return Number(unfiledA) - Number(unfiledB);
+  const eventA = eventProjectIds.has(a);
+  const eventB = eventProjectIds.has(b);
+  if (eventA !== eventB) return eventA ? -1 : 1;
+  const nameA = (projA?.name || '').toLowerCase();
+  const nameB = (projB?.name || '').toLowerCase();
+  return nameA.localeCompare(nameB);
+}
+
 /** Return the first letter (ignoring leading emoji/symbols), lowercased. */
 export function sortKey(content: string): string {
   const m = content.match(/\p{Letter}/u);
@@ -59,12 +74,7 @@ function groupByProject(tasks: DedupedTask[], projects: Record<string, Project>,
       }
       return { projectId: pid, hex, unfiled, tasks };
     })
-    .sort((a, b) => {
-      if (a.unfiled !== b.unfiled) return Number(a.unfiled) - Number(b.unfiled);
-      const nameA = (projects[a.projectId]?.name || '').toLowerCase();
-      const nameB = (projects[b.projectId]?.name || '').toLowerCase();
-      return nameA.localeCompare(nameB);
-    });
+    .sort((a, b) => compareProjects(a.projectId, b.projectId, projects, eventProjectIds));
 }
 
 export function groupTasksByDay(tasks: CompletedTask[], projects: Record<string, Project>, eventProjectIds: Set<string> = new Set()): DayGroup[] {

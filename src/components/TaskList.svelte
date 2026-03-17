@@ -10,10 +10,11 @@
     tasks: CompletedTask[];
     excludedProjects: string[];
     projects: Record<string, Project>;
+    eventProjectIds: Set<string>;
     searchQuery?: string;
   }
 
-  let { tasks, excludedProjects, projects, searchQuery = '' }: Props = $props();
+  let { tasks, excludedProjects, projects, eventProjectIds, searchQuery = '' }: Props = $props();
 
   let searchRegex = $derived.by(() => {
     if (!searchQuery) return null;
@@ -31,14 +32,6 @@
       if (searchRegex) return searchRegex.test(t.content);
       return true;
     }),
-  );
-
-  let eventProjectIds = $derived(
-    new Set(
-      __EVENT_PROJECTS__
-        .map((name) => Object.entries(projects).find(([, p]) => p.name === name)?.[0])
-        .filter((id): id is string => id != null),
-    ),
   );
 
   let days = $derived(groupTasksByDay(filteredTasks, projects, eventProjectIds));

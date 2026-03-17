@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { groupTasksByDay, sortKey } from '../src/lib/tasks';
+import { groupTasksByDay, sortKey, compareProjects } from '../src/lib/tasks';
 import type { CompletedTask, Project } from '../src/lib/types';
 import { TODOIST_COLORS } from '../src/lib/colors';
 import { fmtLocalDate } from '../src/lib/dates';
@@ -166,6 +166,24 @@ describe('groupTasksByDay', () => {
     expect(groups.every(g => g.unfiled)).toBe(true);
   });
 
+  it('sorts event projects before regular projects, both alphabetically', () => {
+    const mixedProjects: Record<string, Project> = {
+      ev1: { name: 'Within', color: 'grey' },
+      ev2: { name: 'Aside', color: 'grey' },
+      reg1: { name: 'Work', color: 'blue' },
+      reg2: { name: 'Home', color: 'green' },
+    };
+    const tasks = [
+      task({ project_id: 'reg1', content: 'Work task', task_id: 't1', id: 'c1' }),
+      task({ project_id: 'ev1', content: 'Within event', task_id: 't2', id: 'c2' }),
+      task({ project_id: 'reg2', content: 'Home task', task_id: 't3', id: 'c3' }),
+      task({ project_id: 'ev2', content: 'Aside event', task_id: 't4', id: 'c4' }),
+    ];
+    const result = groupTasksByDay(tasks, mixedProjects, new Set(['ev1', 'ev2']));
+    const order = result[0].projectGroups.map(g => g.projectId);
+    expect(order).toEqual(['ev2', 'ev1', 'reg2', 'reg1']); // Aside, Within, Home, Work
+  });
+
   it('sorts event project tasks alphabetically by first letter, ignoring emoji', () => {
     const eventProjects: Record<string, Project> = {
       ev: { name: 'Events', color: 'grey' },
@@ -204,5 +222,33 @@ describe('sortKey', () => {
 
   it('falls back to full string when no letters', () => {
     expect(sortKey('123')).toBe('123');
+  });
+});
+
+describe('compareProjects', () => {
+  const testProjects: Record<string, Project> = {
+    ev1: { name: 'Aside', color: 'grey' },
+    ev2: { name: 'Within', color: 'grey' },
+    reg1: { name: 'Home', color: 'green' },
+    reg2: { name: 'Work', color: 'blue' },
+  };
+  const eventIds = new Set(['ev1', 'ev2']);
+
+  it('sorts event projects before regular projects', () => {
+    expect(compareProjects('ev1', 'reg1', testProjects, eventIds)).toBeLessThan(0);
+    expect(compareProjects('reg1', 'ev2', testProjects, eventIds)).toBeGreaterThan(0);
+  });
+
+  it('sorts event projects alphabetically among themselves', () => {
+    expect(compareProjects('ev1', 'ev2', testProjects, eventIds)).toBeLessThan(0); // Aside < Within
+  });
+
+  it('sorts regular projects alphabetically among themselves', () => {
+    expect(compareProjects('reg1', 'reg2', testProjects, eventIds)).toBeLessThan(0); // Home < Work
+  });
+
+  it('sorts unfiled projects last', () => {
+    expect(compareProjects('missing', 'reg1', testProjects, eventIds)).toBeGreaterThan(0);
+    expect(compareProjects('missing', 'ev1', testProjects, eventIds)).toBeGreaterThan(0);
   });
 });

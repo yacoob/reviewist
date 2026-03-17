@@ -13,6 +13,14 @@
   let statusType: StatusType = $state(null);
   let setupVisible = $state(false);
 
+  let eventProjectIds = $derived(
+    new Set(
+      __EVENT_PROJECTS__
+        .map((name) => Object.entries(store.projects).find(([, p]) => p.name === name)?.[0])
+        .filter((id): id is string => id != null),
+    ),
+  );
+
   let searchOpen = $state(false);
   let searchInput = $state('');
   let searchQuery = $state('');
@@ -151,10 +159,11 @@
     <FilterChips
       tasks={store.allTasks}
       projects={store.projects}
+      {eventProjectIds}
       excludedProjects={store.excludedProjects}
       onToggle={handleToggleProject}
     />
-    <TaskList tasks={store.allTasks} excludedProjects={store.excludedProjects} projects={store.projects} {searchQuery} />
+    <TaskList tasks={store.allTasks} excludedProjects={store.excludedProjects} projects={store.projects} {eventProjectIds} {searchQuery} />
   {/if}
 </div>
 
