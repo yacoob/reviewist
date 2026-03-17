@@ -6,7 +6,7 @@
 
 **Architecture:** Extract shared constants (note projects, blocklist) from Vite-specific mechanisms into plain TypeScript modules. Add `until` parameter to API fetch. Sort reconcile output. CLI entry point in `cli/main.ts` orchestrates fetch → reconcile → filter → serialize → stdout. Bun replaces Node as the project runtime.
 
-**Tech Stack:** Bun (runtime + compile target), existing TypeScript modules from `src/lib/`, pnpm (package manager, unchanged)
+**Tech Stack:** Bun (runtime + compile target), existing TypeScript modules from `src/lib/`
 
 **Spec:** `ROADMAP.md` — CLI Export Tool section
 
@@ -39,28 +39,7 @@
 **Files:**
 - Modify: `mise.toml:8-10`
 
-- [ ] **Step 1: Update `mise.toml`** — replace `node = "22"` with `bun = "latest"`, keep `pnpm`:
-
-```toml
-[tools]
-bun = "latest"
-pnpm = "latest"
-```
-
-- [ ] **Step 2: Install bun and dependencies**
-
-Run: `mise install && pnpm install`
-
-- [ ] **Step 3: Verify everything works on Bun**
-
-Run: `pnpm validate`
-Expected: PASS — vitest, svelte-check, and eslint all pass under Bun
-
-- [ ] **Step 4: Commit**
-
-```
-jj commit -m "Switch runtime from Node to Bun"
-```
+- [x] **DONE** — Bun replaces both Node and pnpm. `mise.toml` has `bun = "latest"` only. All scripts via `bun run`.
 
 ---
 
@@ -97,7 +76,7 @@ export const BLOCKLIST: ReadonlySet<string> = new Set([
 
 - [ ] **Step 2: Run validate**
 
-Run: `pnpm validate`
+Run: `bun run validate`
 Expected: PASS (new file, no consumers yet)
 
 - [ ] **Step 3: Commit**
@@ -158,7 +137,7 @@ import { BLOCKLIST } from '../src/lib/constants';
 
 - [ ] **Step 6: Run validate**
 
-Run: `pnpm validate`
+Run: `bun run validate`
 Expected: PASS
 
 - [ ] **Step 7: Commit**
@@ -211,7 +190,7 @@ Replace `__NOTE_PROJECTS__` on line 18 with `NOTE_PROJECT_NAMES`.
 
 - [ ] **Step 5: Run validate**
 
-Run: `pnpm validate`
+Run: `bun run validate`
 Expected: PASS
 
 - [ ] **Step 6: Commit**
@@ -247,7 +226,7 @@ jj commit -m "Replace __NOTE_PROJECTS__ Vite define with constants.ts import"
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `pnpm test -- tests/reconcile.test.ts`
+Run: `bun run test -- tests/reconcile.test.ts`
 Expected: FAIL — actions are in Map iteration order (a, b, c), not sorted by date
 
 - [ ] **Step 3: Add sort to reconcile()** — in `src/lib/reconcile.ts`, replace `return tasks;` (line 42) with:
@@ -259,7 +238,7 @@ Expected: FAIL — actions are in Map iteration order (a, b, c), not sorted by d
 
 - [ ] **Step 4: Run validate**
 
-Run: `pnpm validate`
+Run: `bun run validate`
 Expected: PASS — new test passes, existing tests still pass (they already expected chronological order)
 
 - [ ] **Step 5: Commit**
@@ -293,7 +272,7 @@ export async function fetchActivityEvents(
 
 - [ ] **Step 3: Run validate**
 
-Run: `pnpm validate`
+Run: `bun run validate`
 Expected: PASS — existing callers don't pass `until`, behavior unchanged
 
 - [ ] **Step 4: Commit**
@@ -461,7 +440,7 @@ Changes:
 
 - [ ] **Step 2: Run validate**
 
-Run: `pnpm validate`
+Run: `bun run validate`
 Expected: PASS
 
 - [ ] **Step 3: Commit**

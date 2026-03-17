@@ -87,8 +87,8 @@ cli/
 
 ### Runtime migration
 
-- `mise.toml`: replace `node = "22"` with `bun = "latest"`, keep `pnpm` (Bun is the runtime, pnpm remains the package manager)
-- All `pnpm` scripts (`dev`, `build`, `test`, `validate`, etc.) work unchanged — Bun is a drop-in Node replacement
+- `mise.toml`: replace `node = "22"` + `pnpm = "latest"` with `bun = "latest"`
+- All scripts invoked via `bun run` (e.g. `bun run dev`, `bun run validate`)
 
 ## Future ideas
 
