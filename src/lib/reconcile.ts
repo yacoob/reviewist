@@ -1,13 +1,13 @@
-import type { ActivityEvent, CompletedTask } from './types';
+import type { ActivityEvent, CompletedAction } from './types';
 
 /**
  * Reconcile activity events into completed tasks.
  *
  * Each `uncompleted` event cancels the most recent preceding `completed`
  * event for the same object_id. Surviving `completed` events are mapped
- * to CompletedTask objects for display.
+ * to CompletedAction objects for display.
  */
-export function reconcile(events: ActivityEvent[]): CompletedTask[] {
+export function reconcile(events: ActivityEvent[]): CompletedAction[] {
   // Sort all events chronologically
   events.sort((a, b) => a.event_date < b.event_date ? -1 : a.event_date > b.event_date ? 1 : 0);
 
@@ -26,8 +26,8 @@ export function reconcile(events: ActivityEvent[]): CompletedTask[] {
     }
   }
 
-  // Flatten and map to CompletedTask
-  const tasks: CompletedTask[] = [];
+  // Flatten and map to CompletedAction
+  const tasks: CompletedAction[] = [];
   for (const list of byId.values()) {
     for (const e of list) {
       tasks.push({

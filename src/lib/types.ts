@@ -1,4 +1,4 @@
-export interface CompletedTask {
+export interface CompletedAction {
   content: string;
   completed_at: string;
   project_id: string;
@@ -11,7 +11,7 @@ export interface Project {
   color: string | null;
 }
 
-export interface DedupedTask extends CompletedTask {
+export interface DedupedAction extends CompletedAction {
   count: number;
   allTimes: string[];
 }

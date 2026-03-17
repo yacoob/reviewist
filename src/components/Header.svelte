@@ -50,7 +50,7 @@
     {#if indicatorText}
       <button class="refresh-indicator" onclick={onRefresh} disabled={fetching} title="Click to refresh">{indicatorText}</button>
     {/if}
-    <button class="btn-bare" onclick={onSearch} title="Filter tasks (Ctrl+K)">⌕</button>
+    <button class="btn-bare" onclick={onSearch} title="Filter actions (Ctrl+K)">⌕</button>
     <button class="btn-bare" onclick={onToggleSetup} title="Settings (Ctrl+,)">⚙</button>
   </div>
 </header>

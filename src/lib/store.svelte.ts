@@ -1,4 +1,4 @@
-import type { ActivityEvent, CompletedTask, Project } from './types';
+import type { ActivityEvent, CompletedAction, Project } from './types';
 import { fmtDate } from './dates';
 import { fetchProjects, fetchActivityEvents } from './api';
 import { reconcile } from './reconcile';
@@ -17,7 +17,7 @@ let token = $state(loadToken());
 let refreshInterval = $state(loadRefreshInterval());
 let debugEnabled = $state(loadDebugEnabled());
 let excludedProjects: string[] = $state(loadExcludedProjects());
-let allTasks: CompletedTask[] = $state([]);
+let allActions: CompletedAction[] = $state([]);
 let projects: Record<string, Project> = $state({});
 let lastFetchTime: number | null = $state(null);
 let fetching = $state(false);
@@ -62,8 +62,8 @@ async function doFetch(): Promise<{ error?: string }> {
         projects = cached.projects;
         lastFetchTime = cached.fetchedAt;
         const filtered = cachedEvents.filter(e => !BLOCKLIST.has(e.object_id));
-        allTasks = reconcile(filtered);
-        log(`loaded ${cachedEvents.length} events and ${Object.keys(cached.projects).length} projects from IndexedDB cache (last fetched ${new Date(cached.fetchedAt).toLocaleTimeString()}), reconciled into ${allTasks.length} tasks`);
+        allActions = reconcile(filtered);
+        log(`loaded ${cachedEvents.length} events and ${Object.keys(cached.projects).length} projects from IndexedDB cache (last fetched ${new Date(cached.fetchedAt).toLocaleTimeString()}), reconciled into ${allActions.length} actions`);
       } else {
         log('no IndexedDB cache found');
       }
@@ -99,18 +99,18 @@ async function doFetch(): Promise<{ error?: string }> {
     }
 
     const filtered = merged.filter(e => !BLOCKLIST.has(e.object_id));
-    const newTasks = reconcile(filtered);
+    const newActions = reconcile(filtered);
 
     // Update state
     cachedEvents = merged;
-    const tasksChanged = JSON.stringify(newTasks) !== JSON.stringify($state.snapshot(allTasks));
+    const actionsChanged = JSON.stringify(newActions) !== JSON.stringify($state.snapshot(allActions));
     const projChanged = JSON.stringify(projMap) !== JSON.stringify($state.snapshot(projects));
-    if (tasksChanged || projChanged) {
-      allTasks = newTasks;
+    if (actionsChanged || projChanged) {
+      allActions = newActions;
       projects = projMap;
-      log(`reconciled ${merged.length} events into ${newTasks.length} tasks, task data changed`);
+      log(`reconciled ${merged.length} events into ${newActions.length} actions, action data changed`);
     } else {
-      log(`reconciled ${merged.length} events into ${newTasks.length} tasks, task data unchanged`);
+      log(`reconciled ${merged.length} events into ${newActions.length} actions, action data unchanged`);
     }
 
     // Save cache
@@ -121,7 +121,7 @@ async function doFetch(): Promise<{ error?: string }> {
   } catch (e) {
     log(`API request failed: ${(e as Error).message}`);
     if (cachedEvents.length > 0) return {};
-    allTasks = [];
+    allActions = [];
     return { error: (e as Error).message };
   } finally {
     fetching = false;
@@ -137,7 +137,7 @@ function forgetToken() {
   clearStoredToken();
   clearCachedState();
   token = '';
-  allTasks = [];
+  allActions = [];
   projects = {};
   cachedEvents = [];
   lastFetchTime = null;
@@ -146,7 +146,7 @@ function forgetToken() {
 async function purgeCache() {
   await clearCachedState();
   cachedEvents = [];
-  allTasks = [];
+  allActions = [];
   projects = {};
   lastFetchTime = null;
   pushLog('cache purged');
@@ -177,7 +177,7 @@ export const store = {
   set token(v: string) { token = v; },
   get refreshInterval() { return refreshInterval; },
   get excludedProjects() { return excludedProjects; },
-  get allTasks() { return allTasks; },
+  get allActions() { return allActions; },
   get projects() { return projects; },
   get lastFetchTime() { return lastFetchTime; },
   get fetching() { return fetching; },

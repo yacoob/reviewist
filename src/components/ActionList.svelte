@@ -1,20 +1,20 @@
 <script lang="ts">
-  import type { CompletedTask, Project } from '../lib/types';
-  import { groupTasksByDay } from '../lib/tasks';
-  import TaskItem from './TaskItem.svelte';
+  import type { CompletedAction, Project } from '../lib/types';
+  import { groupActionsByDay } from '../lib/actions';
+  import ActionItem from './ActionItem.svelte';
   import { fade } from 'svelte/transition';
   import { flip } from 'svelte/animate';
   import { prefersReducedMotion } from 'svelte/motion';
 
   interface Props {
-    tasks: CompletedTask[];
+    actions: CompletedAction[];
     excludedProjects: string[];
     projects: Record<string, Project>;
     noteProjectIds: Set<string>;
     searchQuery?: string;
   }
 
-  let { tasks, excludedProjects, projects, noteProjectIds, searchQuery = '' }: Props = $props();
+  let { actions, excludedProjects, projects, noteProjectIds, searchQuery = '' }: Props = $props();
 
   let searchRegex = $derived.by(() => {
     if (!searchQuery) return null;
@@ -26,34 +26,34 @@
     }
   });
 
-  let filteredTasks = $derived(
-    tasks.filter((t) => {
+  let filteredActions = $derived(
+    actions.filter((t) => {
       if (excludedProjects.includes(t.project_id)) return false;
       if (searchRegex) return searchRegex.test(t.content);
       return true;
     }),
   );
 
-  let days = $derived(groupTasksByDay(filteredTasks, projects, noteProjectIds));
+  let days = $derived(groupActionsByDay(filteredActions, projects, noteProjectIds));
 
   function d(ms: number) { return prefersReducedMotion.current ? 0 : ms; }
 </script>
 
-{#if filteredTasks.length === 0}
+{#if filteredActions.length === 0}
   <div class="empty">
     <div class="empty-icon">∅</div>
-    {#if tasks.length === 0}
-      No completed tasks in this range.
+    {#if actions.length === 0}
+      No completed actions in this range.
     {:else}
       All projects filtered out.
     {/if}
   </div>
 {:else}
-  {#each days as { day, label, taskCount, projectGroups } (day)}
+  {#each days as { day, label, actionCount, projectGroups } (day)}
     <div class="day-group">
       <div class="day-header">
         <span>{label}</span>
-        <span class="day-count">{taskCount}</span>
+        <span class="day-count">{actionCount}</span>
       </div>
       {#each projectGroups as group (group.projectId)}
         <div
@@ -65,13 +65,13 @@
           {#if group.unfiled}
             <div class="unfiled-header">unfiled</div>
           {/if}
-          {#each group.tasks as task (task.id)}
+          {#each group.actions as action (action.id)}
             <div
               in:fade={{ duration: d(150) }}
               out:fade={{ duration: d(100) }}
               animate:flip={{ duration: d(200) }}
             >
-              <TaskItem {task} isNote={noteProjectIds.has(group.projectId)} />
+              <ActionItem {action} isNote={noteProjectIds.has(group.projectId)} />
             </div>
           {/each}
         </div>

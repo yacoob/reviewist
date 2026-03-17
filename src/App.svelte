@@ -6,7 +6,7 @@
   import SetupPanel from './components/SetupPanel.svelte';
   import StatusMessage from './components/StatusMessage.svelte';
   import FilterChips from './components/FilterChips.svelte';
-  import TaskList from './components/TaskList.svelte';
+  import ActionList from './components/ActionList.svelte';
   import DebugLog from './components/DebugLog.svelte';
 
   let statusMessage = $state('');
@@ -150,20 +150,20 @@
     <DebugLog entries={store.debugLog} />
   {/if}
 
-  {#if !store.token && store.allTasks.length === 0}
+  {#if !store.token && store.allActions.length === 0}
     <div class="needs-token">
       Paste your API token to get started
       <div class="hint">Settings → Integrations → Developer</div>
     </div>
   {:else}
     <FilterChips
-      tasks={store.allTasks}
+      actions={store.allActions}
       projects={store.projects}
       {noteProjectIds}
       excludedProjects={store.excludedProjects}
       onToggle={handleToggleProject}
     />
-    <TaskList tasks={store.allTasks} excludedProjects={store.excludedProjects} projects={store.projects} {noteProjectIds} {searchQuery} />
+    <ActionList actions={store.allActions} excludedProjects={store.excludedProjects} projects={store.projects} {noteProjectIds} {searchQuery} />
   {/if}
 </div>
 
@@ -176,7 +176,7 @@
         bind:this={inputEl}
         type="text"
         class="search-input"
-        placeholder="filter tasks..."
+        placeholder="filter actions..."
         bind:value={searchInput}
         onkeydown={handleSearchKey}
       />

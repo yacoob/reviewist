@@ -1,21 +1,21 @@
 <script lang="ts">
-  import type { CompletedTask, Project } from '../lib/types';
+  import type { CompletedAction, Project } from '../lib/types';
   import { TODOIST_COLORS } from '../lib/colors';
-  import { compareProjects } from '../lib/tasks';
+  import { compareProjects } from '../lib/actions';
 
   interface Props {
-    tasks: CompletedTask[];
+    actions: CompletedAction[];
     projects: Record<string, Project>;
     noteProjectIds: Set<string>;
     excludedProjects: string[];
     onToggle: (projectId: string) => void;
   }
 
-  let { tasks, projects, noteProjectIds, excludedProjects, onToggle }: Props = $props();
+  let { actions, projects, noteProjectIds, excludedProjects, onToggle }: Props = $props();
 
   let sortedProjects = $derived.by(() => {
     const counts: Record<string, number> = {};
-    for (const t of tasks) {
+    for (const t of actions) {
       counts[t.project_id] = (counts[t.project_id] || 0) + 1;
     }
     return Object.entries(counts).sort((a, b) =>

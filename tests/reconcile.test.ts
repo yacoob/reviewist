@@ -23,7 +23,7 @@ describe('reconcile', () => {
     expect(reconcile([])).toEqual([]);
   });
 
-  it('maps a single completed event to a CompletedTask', () => {
+  it('maps a single completed event to a CompletedAction', () => {
     const result = reconcile([ev()]);
     expect(result).toHaveLength(1);
     expect(result[0]).toEqual({

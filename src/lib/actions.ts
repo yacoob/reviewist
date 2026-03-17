@@ -1,4 +1,4 @@
-import type { CompletedTask, DedupedTask, Project } from './types';
+import type { CompletedAction, DedupedAction, Project } from './types';
 import { TODOIST_COLORS } from './colors';
 import { formatDayLabel, fmtLocalDate } from './dates';
 
@@ -6,22 +6,22 @@ interface ProjectGroup {
   projectId: string;
   hex: string | null;
   unfiled: boolean;
-  tasks: DedupedTask[];
+  actions: DedupedAction[];
 }
 
 interface DayGroup {
   day: string;
   label: string;
-  taskCount: number;
+  actionCount: number;
   projectGroups: ProjectGroup[];
 }
 
-function dedup(tasks: CompletedTask[]): DedupedTask[] {
-  const sorted = [...tasks].sort((a, b) =>
+function dedup(actions: CompletedAction[]): DedupedAction[] {
+  const sorted = [...actions].sort((a, b) =>
     a.completed_at.localeCompare(b.completed_at),
   );
-  const result: DedupedTask[] = [];
-  const seen: Record<string, DedupedTask> = {};
+  const result: DedupedAction[] = [];
+  const seen: Record<string, DedupedAction> = {};
   for (const t of sorted) {
     const key = t.content + '||' + t.project_id;
     if (seen[key]) {
@@ -29,7 +29,7 @@ function dedup(tasks: CompletedTask[]): DedupedTask[] {
       seen[key].allTimes.push(t.completed_at);
       seen[key].completed_at = t.completed_at; // always latest — ascending sort above
     } else {
-      const entry: DedupedTask = { ...t, count: 1, allTimes: [t.completed_at] };
+      const entry: DedupedAction = { ...t, count: 1, allTimes: [t.completed_at] };
       seen[key] = entry;
       result.push(entry);
     }
@@ -55,28 +55,28 @@ export function sortKey(content: string): string {
   return m ? m[0].toLowerCase() : content.toLowerCase();
 }
 
-function groupByProject(tasks: DedupedTask[], projects: Record<string, Project>, noteProjectIds: Set<string>): ProjectGroup[] {
-  const byProject: Record<string, DedupedTask[]> = {};
-  for (const t of tasks) {
+function groupByProject(actions: DedupedAction[], projects: Record<string, Project>, noteProjectIds: Set<string>): ProjectGroup[] {
+  const byProject: Record<string, DedupedAction[]> = {};
+  for (const t of actions) {
     (byProject[t.project_id] ??= []).push(t);
   }
 
   return Object.entries(byProject)
-    .map(([pid, tasks]) => {
+    .map(([pid, actions]) => {
       const proj = projects[pid];
       const unfiled = !proj?.name;
       const hex = unfiled ? TODOIST_COLORS.red : (proj?.color ? TODOIST_COLORS[proj.color] || null : null);
       if (noteProjectIds.has(pid)) {
-        tasks.sort((a, b) => sortKey(a.content).localeCompare(sortKey(b.content)));
+        actions.sort((a, b) => sortKey(a.content).localeCompare(sortKey(b.content)));
       }
-      return { projectId: pid, hex, unfiled, tasks };
+      return { projectId: pid, hex, unfiled, actions };
     })
     .sort((a, b) => compareProjects(a.projectId, b.projectId, projects, noteProjectIds));
 }
 
-export function groupTasksByDay(tasks: CompletedTask[], projects: Record<string, Project>, noteProjectIds: Set<string> = new Set()): DayGroup[] {
-  const grouped: Record<string, CompletedTask[]> = {};
-  for (const t of tasks) {
+export function groupActionsByDay(actions: CompletedAction[], projects: Record<string, Project>, noteProjectIds: Set<string> = new Set()): DayGroup[] {
+  const grouped: Record<string, CompletedAction[]> = {};
+  for (const t of actions) {
     const date = t.completed_at ? fmtLocalDate(new Date(t.completed_at)) : 'Unknown';
     (grouped[date] ??= []).push(t);
   }
@@ -88,6 +88,6 @@ export function groupTasksByDay(tasks: CompletedTask[], projects: Record<string,
       const deduped = dedup(grouped[day]);
       const projectGroups = groupByProject(deduped, projects, noteProjectIds);
       const label = day === 'Unknown' ? 'Unknown date' : formatDayLabel(day);
-      return { day, label, taskCount: deduped.length, projectGroups };
+      return { day, label, actionCount: deduped.length, projectGroups };
     });
 }
