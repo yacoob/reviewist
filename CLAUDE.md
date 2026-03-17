@@ -6,13 +6,24 @@ Todoist has no usable way to review completed tasks. The built-in Activity Log i
 
 This is a personal tool for a single user (not multi-tenant). It's a client-side-only web app that hits the Todoist API directly from the browser. No backend needed — Todoist's API supports CORS (`Access-Control-Allow-Origin: *`).
 
+## Terminology
+
+Reviewist uses bujo-inspired vocabulary, distinct from Todoist's:
+
+| Reviewist term | Todoist equivalent | Meaning |
+|---|---|---|
+| **Action** | Task | Something you do — has a checkmark, completion time |
+| **Note** | Uncompletable task (`* ` prefix) | Something you record — rendered with a colored bullet, no checkmark. Lives in a **note project** (configured via `__NOTE_PROJECTS__` in vite.config.ts). |
+
+The Todoist API types (`task_id`, `ActivityEvent`, etc.) keep Todoist's naming. Reviewist's own types use the new vocabulary: `CompletedAction`, `DedupedAction`, `groupActionsByDay()`, etc.
+
 ## User Profile
 
-- ~5 tasks/day, ~10 monthly "floating" tasks, ~50 unmoored backlog tasks
-- Primary use case: weekly review showing all tasks completed in last 7 days
+- ~5 actions/day, ~10 monthly "floating" actions, ~50 unmoored backlog actions
+- Primary use case: weekly review showing all actions completed in last 7 days
 - Uses Todoist Pro (required for unlimited activity history and deadline feature)
 - Labels for grouping: `@feline`, `@cleaning`, etc.
-- Has an "Aside" project for non-task entries (e.g. "Dawn returns from London") — these should be filterable/excludable
+- Has "Aside" and "Within" projects for notes (non-action entries, e.g. "Dawn returns from London") — these should be filterable/excludable
 - Runs a homelab, comfortable self-hosting, prefers self-hosted solutions
 - Android user
 
@@ -27,7 +38,7 @@ These are the workarounds adopted for Todoist's limitations:
 | Recurring tasks (from completion) | `every! 2 weeks` | The `!` syntax |
 | Month floaters ("do sometime in March") | **Deadline** set to end of month | e.g. deadline March 31. Stays hidden until 7 days before. Filterable: `deadline: March 31` or `deadline before: April 1`. Cannot use deadlines on recurring tasks. |
 | Unmoored "eventually" tasks | No date, live in a project | Invisible in time-based views until assigned a date |
-| Notes/events (not tasks) | Separate "Aside" project | Kludge. Everything is a checkbox. Filter out of working views. |
+| Notes (not actions) | Separate "Aside" / "Within" projects | Kludge. Everything is a checkbox. Filter out of working views. Configured via `__NOTE_PROJECTS__` in vite.config.ts. |
 | Tags/grouping | Labels | `@feline`, `@cleaning`, etc. |
 | Weekly completed review | **This app** | The whole point |
 
@@ -68,7 +79,7 @@ The v1 `/tasks/completed/by_completion_date` endpoint does not return recurring 
 ### Other endpoints used
 
 - `GET /api/v1/projects` — project list (names, colors)
-- `GET /api/v1/tasks/filter?query={filter}` — Todoist filter syntax, used for event tasks from the Aside project
+- `GET /api/v1/tasks/filter?query={filter}` — Todoist filter syntax, used for notes from the Aside/Within projects
 
 ### Rate Limits
 
@@ -105,7 +116,7 @@ reviewist/
 │   │   ├── colors.ts       # TODOIST_COLORS map
 │   │   ├── cache.ts        # IndexedDB cache with integrity checks (SHA-256 + structural)
 │   │   ├── dates.ts        # fmtDate, formatDayLabel
-│   │   ├── tasks.ts        # Grouping, dedup, project sorting logic
+│   │   ├── actions.ts      # Grouping, dedup, project sorting logic
 │   │   ├── store.svelte.ts # Reactive store: fetch orchestration, incremental fetching
 │   │   └── storage.ts      # localStorage helpers (token, excluded projects, refresh interval)
 │   └── components/
@@ -113,8 +124,8 @@ reviewist/
 │       ├── SetupPanel.svelte   # Token, refresh interval, fetch/forget buttons
 │       ├── StatusMessage.svelte # Error/info/loading bar
 │       ├── FilterChips.svelte  # Project filter toggles with Todoist colors
-│       ├── TaskList.svelte     # Day grouping, dedup, renders TaskItems
-│       ├── TaskItem.svelte     # Single task: check, content, project chip, time
+│       ├── ActionList.svelte    # Day grouping, dedup, renders ActionItems
+│       ├── ActionItem.svelte   # Single action: check, content, project chip, time
 │       └── DebugLog.svelte     # Collapsible debug log panel
 └── tests/
     ├── api.test.ts
@@ -126,7 +137,7 @@ reviewist/
     ├── reconcile.test.ts
     ├── reconcile.bench.ts
     ├── storage.test.ts
-    └── tasks.test.ts
+    └── actions.test.ts
 ```
 
 ### Architecture
@@ -134,17 +145,17 @@ reviewist/
 #### Data flow
 
 1. **Fetch**: Activity log events (`completed` + `uncompleted`) via paginated API calls
-2. **Reconcile**: Sort events chronologically, pair uncompletes with their preceding completes, produce `CompletedTask[]`
-3. **Display**: Group by day, dedup recurring tasks (×N badge), render with project colors
+2. **Reconcile**: Sort events chronologically, pair uncompletes with their preceding completes, produce `CompletedAction[]`
+3. **Display**: Group by day, dedup recurring actions (×N badge), render with project colors
 
 #### Timezone convention
 
 The Todoist API returns `event_date` in UTC (ISO 8601 with `Z` suffix). The app uses two date functions:
 
 - **`fmtDate`** (UTC) — for API parameters (`date_from`) and cache logic. Uses `toISOString()`.
-- **`fmtLocalDate`** / **`fmtLocalTime`** (local timezone) — for all user-facing display: day grouping keys, "Today"/"Yesterday" labels, task completion times.
+- **`fmtLocalDate`** / **`fmtLocalTime`** (local timezone) — for all user-facing display: day grouping keys, "Today"/"Yesterday" labels, action completion times.
 
-This matters because a task completed at `2026-02-20T23:30:00Z` should appear under Feb 21 for a CET user, not Feb 20. Never use `split('T')[0]` to extract dates for display — always convert to a `Date` object first and use `fmtLocalDate`.
+This matters because an action completed at `2026-02-20T23:30:00Z` should appear under Feb 21 for a CET user, not Feb 20. Never use `split('T')[0]` to extract dates for display — always convert to a `Date` object first and use `fmtLocalDate`.
 
 #### Incremental fetching
 
@@ -166,11 +177,11 @@ If either fails, the cache is discarded and a full fetch is triggered.
 
 #### Reconciliation
 
-Each `uncompleted` event cancels the most recent preceding `completed` event for the same `object_id`. Recurring tasks produce multiple `completed` events sharing one `object_id` — each is treated as a separate completion.
+Each `uncompleted` event cancels the most recent preceding `completed` event for the same `object_id`. Recurring actions produce multiple `completed` events sharing one `object_id` — each is treated as a separate completion.
 
 #### Blocklist
 
-A build-time blocklist (`src/blocklist.txt`, one task ID per line) filters out known-bad task IDs before reconciliation. Embedded via Vite's `?raw` import — edit the file and rebuild.
+A build-time blocklist (`src/blocklist.txt`, one Todoist task ID per line) filters out known-bad IDs before reconciliation. Embedded via Vite's `?raw` import — edit the file and rebuild.
 
 ### Features
 
@@ -178,12 +189,12 @@ A build-time blocklist (`src/blocklist.txt`, one task ID per line) filters out k
 - Fixed 6-week review window, displayed in header
 - IndexedDB cache: renders instantly from cached events, then incremental refresh
 - Configurable auto-refresh interval (off / 1m / 5m / 15m), persisted in localStorage
-- Activity log as data source (captures recurring task completions)
-- Groups completed tasks by day (newest day first), sorted by completion time within each day
-- Deduplicates repeated completions (recurring tasks): shows ×N badge, latest timestamp, tooltip with all timestamps
-- Project filter chips as multi-select toggles, colored with Todoist project colors
-- Project tags on tasks link to `https://app.todoist.com/app/project/{id}`
-- Event tasks (uncompletable `* ` tasks from Aside project) shown with colored bullet instead of checkmark
+- Activity log as data source (captures recurring action completions)
+- Groups completed actions by day (newest day first), sorted by completion time within each day
+- Deduplicates repeated completions (recurring actions): shows ×N badge, latest timestamp, tooltip with all timestamps
+- Project filter chips as multi-select toggles, colored with Todoist project colors; note projects sort first
+- Project tags on actions link to `https://app.todoist.com/app/task/{id}`
+- Notes (uncompletable `* ` tasks from note projects) shown with colored bullet instead of checkmark
 - Print-friendly CSS
 - Dark theme, JetBrains Mono + DM Sans typography
 
@@ -201,10 +212,10 @@ A build-time blocklist (`src/blocklist.txt`, one task ID per line) filters out k
 Tests live in `tests/` (project root), using vitest with jsdom environment. Non-trivial `src/lib/` logic should have test coverage. When modifying existing code, verify existing tests still pass. When adding new logic, add tests if the code is non-trivial and feasible to test (pure functions, state logic — not Svelte components or fetch wrappers).
 
 - `pnpm validate` runs vitest, svelte-check, and eslint in sequence.
-- `tests/reconcile.test.ts` covers reconciliation: uncomplete cancellation, recurring task handling, out-of-order events.
+- `tests/reconcile.test.ts` covers reconciliation: uncomplete cancellation, recurring action handling, out-of-order events.
 - Cache tests are split across three files: `cache.test.ts` (round-trips, integrity checks, throw-based errors via fake-indexeddb), `cache-errors.test.ts` (IDB `onerror` callbacks via prototype patching), `cache-upgrade.test.ts` (DB version upgrade, isolated to avoid connection conflicts).
 - Coverage thresholds are enforced at 95% for statements, branches, functions, and lines.
-- When creating test tasks in Todoist for API experimentation, always delete them while uncompleted. Completing a test task and then deleting it leaves orphaned `completed` events in the activity log that will show up in Reviewist forever.
+- When creating test tasks in Todoist for API experimentation, always delete them while uncompleted. Completing and then deleting a test task leaves orphaned `completed` events in the activity log that will show up in Reviewist forever.
 
 ### SDK note
 
