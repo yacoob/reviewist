@@ -200,18 +200,18 @@ A build-time blocklist (`src/blocklist.txt`, one Todoist task ID per line) filte
 
 ### Dev Workflow
 
-- `pnpm dev` — Vite dev server with hot reload
-- `pnpm build` — produces `dist/index.html` (single file, works from `file://`)
-- `pnpm check` — svelte-check type diagnostics
-- `pnpm test` — vitest unit tests
-- `pnpm lint` — ESLint with Svelte + TypeScript rules
-- `pnpm validate` — runs tests, type checks, and lint in sequence. **Use this to verify changes.**
+- `bun run dev` — Vite dev server with hot reload
+- `bun run build` — produces `dist/index.html` (single file, works from `file://`)
+- `bun run check` — svelte-check type diagnostics
+- `bun run test` — vitest unit tests
+- `bun run lint` — ESLint with Svelte + TypeScript rules
+- `bun run validate` — runs tests, type checks, and lint in sequence. **Use this to verify changes.**
 
 ### Testing
 
 Tests live in `tests/` (project root), using vitest with jsdom environment. Non-trivial `src/lib/` logic should have test coverage. When modifying existing code, verify existing tests still pass. When adding new logic, add tests if the code is non-trivial and feasible to test (pure functions, state logic — not Svelte components or fetch wrappers).
 
-- `pnpm validate` runs vitest, svelte-check, and eslint in sequence.
+- `bun run validate` runs vitest, svelte-check, and eslint in sequence.
 - `tests/reconcile.test.ts` covers reconciliation: uncomplete cancellation, recurring action handling, out-of-order events.
 - Cache tests are split across three files: `cache.test.ts` (round-trips, integrity checks, throw-based errors via fake-indexeddb), `cache-errors.test.ts` (IDB `onerror` callbacks via prototype patching), `cache-upgrade.test.ts` (DB version upgrade, isolated to avoid connection conflicts).
 - Coverage thresholds are enforced at 95% for statements, branches, functions, and lines.
