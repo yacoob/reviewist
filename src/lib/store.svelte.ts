@@ -143,6 +143,15 @@ function forgetToken() {
   lastFetchTime = null;
 }
 
+async function purgeCache() {
+  await clearCachedState();
+  cachedEvents = [];
+  allTasks = [];
+  projects = {};
+  lastFetchTime = null;
+  pushLog('cache purged');
+}
+
 function setRefreshInterval(ms: number) {
   refreshInterval = ms;
   saveRefreshInterval(ms);
@@ -178,6 +187,7 @@ export const store = {
   fetch: doFetch,
   saveToken: saveTokenValue,
   forgetToken,
+  purgeCache,
   setRefreshInterval,
   setDebugEnabled,
   toggleProject,

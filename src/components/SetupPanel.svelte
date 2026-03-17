@@ -7,11 +7,12 @@
     debugEnabled: boolean;
     onFetch: () => void;
     onForget: () => void;
+    onPurgeCache: () => void;
     onRefreshChange: (ms: number) => void;
     onDebugChange: (on: boolean) => void;
   }
 
-  let { visible, token = $bindable(), fetching, refreshInterval, debugEnabled, onFetch, onForget, onRefreshChange, onDebugChange }: Props = $props();
+  let { visible, token = $bindable(), fetching, refreshInterval, debugEnabled, onFetch, onForget, onPurgeCache, onRefreshChange, onDebugChange }: Props = $props();
 </script>
 
 {#if visible}
@@ -43,7 +44,10 @@
           <input id="debug-check" type="checkbox" checked={debugEnabled} onchange={(e) => onDebugChange(e.currentTarget.checked)} />
         </label>
       </div>
-      <button class="btn-forget" onclick={onForget}>forget token</button>
+      <div class="options-right">
+        <button class="btn-danger-link" onclick={onPurgeCache}>purge cache</button>
+        <button class="btn-danger-link" onclick={onForget}>forget token</button>
+      </div>
     </div>
   </div>
 {/if}
@@ -117,8 +121,13 @@
   .option select:focus { border-color: var(--text-dim); }
   .option input[type="checkbox"] { cursor: pointer; }
 
-  /* Forget — subtle text link, right side */
-  .btn-forget {
+  /* Destructive text links — right side */
+  .options-right {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+  }
+  .btn-danger-link {
     background: none;
     border: none;
     color: var(--text-muted);
@@ -130,8 +139,8 @@
     transition: opacity 0.15s;
     letter-spacing: 0.04em;
   }
-  .btn-forget:hover { opacity: 1; color: var(--text-dim); }
-  .btn-forget:focus-visible { outline: 2px solid var(--text-muted); outline-offset: 2px; }
+  .btn-danger-link:hover { opacity: 1; color: var(--text-dim); }
+  .btn-danger-link:focus-visible { outline: 2px solid var(--text-muted); outline-offset: 2px; }
 
   @media (max-width: 600px) {
     .options-bar { flex-wrap: wrap; gap: 0.5rem; }

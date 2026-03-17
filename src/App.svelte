@@ -82,6 +82,15 @@
     setTimeout(clearStatus, 3000);
   }
 
+  async function handlePurgeCache() {
+    await store.purgeCache();
+    clearStatus();
+    const { error } = await store.fetch();
+    if (error) {
+      showStatus(error, 'error');
+    }
+  }
+
   function handleRefreshChange(ms: number) {
     store.setRefreshInterval(ms);
   }
@@ -124,6 +133,7 @@
     debugEnabled={store.debugEnabled}
     onFetch={handleFetch}
     onForget={handleForget}
+    onPurgeCache={handlePurgeCache}
     onRefreshChange={handleRefreshChange}
     onDebugChange={(on) => store.setDebugEnabled(on)}
   />
