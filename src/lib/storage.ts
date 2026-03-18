@@ -45,8 +45,3 @@ export function loadDebugEnabled(): boolean {
 export function saveDebugEnabled(on: boolean): void {
   localStorage.setItem(DEBUG_KEY, on ? '1' : '0');
 }
-
-import blocklistRaw from '../blocklist.txt?raw';
-export const BLOCKLIST: ReadonlySet<string> = new Set(
-  blocklistRaw.split('\n').map(s => s.trim()).filter(Boolean),
-);

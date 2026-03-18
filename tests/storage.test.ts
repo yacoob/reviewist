@@ -9,8 +9,8 @@ import {
   saveRefreshInterval,
   loadDebugEnabled,
   saveDebugEnabled,
-  BLOCKLIST,
 } from '../src/lib/storage';
+import { BLOCKLIST } from '../src/lib/constants';
 
 beforeEach(() => {
   localStorage.clear();

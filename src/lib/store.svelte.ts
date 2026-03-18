@@ -7,8 +7,8 @@ import {
   loadExcludedProjects, saveExcludedProjects,
   loadRefreshInterval, saveRefreshInterval,
   loadDebugEnabled, saveDebugEnabled,
-  BLOCKLIST,
 } from './storage';
+import { BLOCKLIST } from './constants';
 import { loadCachedState, saveCachedState, clearCachedState } from './cache';
 
 import { newestEventDate, mergeEvents, SIX_WEEKS_MS, OVERLAP_MS } from './events';
