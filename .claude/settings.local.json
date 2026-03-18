@@ -27,7 +27,12 @@
       "Bash(bun run test:*)",
       "Bash(bun run vitest:*)",
       "Bash(jj split:*)",
-      "Bash(git log:*)"
+      "Bash(git log:*)",
+      "Bash(bun run:*)",
+      "Bash(echo \"exit: $?\")",
+      "Bash(bun build:*)",
+      "Bash(./reviewist-export --since 2026-03-11 --until 2026-03-18)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(f''''{len\\(d[\"\"actions\"\"]\\)} actions, {len\\(d[\"\"projects\"\"]\\)} projects''''\\)\")"
     ]
   },
   "enableAllProjectMcpServers": true,
