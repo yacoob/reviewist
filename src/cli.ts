@@ -34,7 +34,7 @@ if (!token) die('TODOIST_TOKEN environment variable is required');
 
 // Date range
 const since = args.since ?? fmtDate(new Date(Date.now() - SIX_WEEKS_MS));
-const until = args.until ?? fmtDate(new Date());
+const until = args.until;
 
 // Note projects
 const noteProjectNames: readonly string[] = args['note-projects']
@@ -82,6 +82,6 @@ if (format === 'json') {
   };
   console.log(JSON.stringify(output, null, 2));
 } else {
-  const data = buildTemplateData(actions, projects, noteProjectIds, { since, until });
+  const data = buildTemplateData(actions, projects, noteProjectIds, { since, until: until ?? fmtDate(new Date()) });
   process.stdout.write(renderTemplate(format, data));
 }
