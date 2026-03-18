@@ -34,6 +34,7 @@ export async function fetchProjects(
 export async function fetchActivityEvents(
   token: string,
   since: string,
+  until?: string,
 ): Promise<ActivityEvent[]> {
   const allEvents: ActivityEvent[] = [];
   let cursor: string | undefined;
@@ -45,6 +46,7 @@ export async function fetchActivityEvents(
       limit: String(PAGE_LIMIT),
     });
     if (cursor) params.set('cursor', cursor);
+    if (until) params.set('date_to', until);
 
     const data = (await api(
       `${BASE}/activities?${params}`,
