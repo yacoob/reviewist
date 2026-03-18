@@ -95,6 +95,25 @@ describe('buildTemplateData', () => {
     expect(result.days[0].actions[0].time).toMatch(/^\d{2}:\d{2}$/);
   });
 
+  it('puts actions with empty completed_at into Unknown bucket', () => {
+    const result = buildTemplateData(
+      [action({ completed_at: '' })],
+      projects, noteIds, range,
+    );
+    expect(result.days).toHaveLength(1);
+    expect(result.days[0].date).toBe('Unknown');
+    expect(result.days[0].label).toBe('Unknown date');
+  });
+
+  it('does not deduplicate across different projects', () => {
+    const actions = [
+      action({ content: 'Same name', project_id: 'p1' }),
+      action({ content: 'Same name', project_id: 'p2', task_id: 't2', id: 'c2' }),
+    ];
+    const result = buildTemplateData(actions, projects, noteIds, range);
+    expect(result.days[0].actions).toHaveLength(2);
+  });
+
   it('uses latest time for deduped actions', () => {
     const actions = [
       action({ content: 'Recurring', completed_at: '2026-02-20T08:00:00Z', id: 'c1' }),

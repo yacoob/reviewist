@@ -78,6 +78,25 @@ describe('renderTemplate', () => {
     expect(result).toContain('×3');
   });
 
+  it('renders range header', () => {
+    const result = renderTemplate('markdown', data);
+    expect(result).toContain('# Review: 2026-02-01 to 2026-02-28');
+  });
+
+  it('renders project name in italics', () => {
+    const result = renderTemplate('markdown', data);
+    expect(result).toContain('_Home_');
+  });
+
+  it('does not show count for non-recurring actions', () => {
+    const result = renderTemplate('markdown', data);
+    expect(result).not.toContain('×1');
+  });
+
+  it('error message lists available built-in formats', () => {
+    expect(() => renderTemplate('nonexistent', data)).toThrow(/markdown/);
+  });
+
   it('renders from a filesystem path', () => {
     const tmpPath = '/tmp/test-reviewist-template.njk';
     writeFileSync(tmpPath, '{{ range.since }} to {{ range.until }}');
