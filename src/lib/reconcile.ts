@@ -39,5 +39,6 @@ export function reconcile(events: ActivityEvent[]): CompletedAction[] {
       });
     }
   }
+  tasks.sort((a, b) => a.completed_at < b.completed_at ? -1 : a.completed_at > b.completed_at ? 1 : 0);
   return tasks;
 }

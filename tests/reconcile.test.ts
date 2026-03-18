@@ -108,6 +108,22 @@ describe('reconcile', () => {
     expect(result).toEqual([]);
   });
 
+  it('returns actions sorted by completed_at ascending', () => {
+    // Recurring task 'a' has completions that interleave with task 'b'.
+    // Without explicit sorting, Map iteration groups by object_id,
+    // producing [a@08:00, a@12:00, b@10:00] instead of chronological order.
+    const result = reconcile([
+      ev({ object_id: 'a', event_date: '2026-02-20T08:00:00Z' }),
+      ev({ object_id: 'b', event_date: '2026-02-20T10:00:00Z' }),
+      ev({ object_id: 'a', event_date: '2026-02-20T12:00:00Z' }),
+    ]);
+    expect(result.map(a => a.completed_at)).toEqual([
+      '2026-02-20T08:00:00Z',
+      '2026-02-20T10:00:00Z',
+      '2026-02-20T12:00:00Z',
+    ]);
+  });
+
   it('handles events with identical timestamps', () => {
     const result = reconcile([
       ev({ object_id: 'a', event_date: '2026-02-20T10:00:00Z' }),
