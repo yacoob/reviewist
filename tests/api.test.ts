@@ -3,12 +3,16 @@ import { fetchProjects, fetchActivityEvents } from '../src/lib/api';
 import type { ActivityEvent } from '../src/lib/types';
 
 function mockFetch(body: unknown, status = 200) {
-  return vi.fn().mockResolvedValue({
-    ok: status >= 200 && status < 300,
-    status,
-    json: () => Promise.resolve(body),
-    text: () => Promise.resolve(JSON.stringify(body)),
-  });
+  const fn = Object.assign(
+    vi.fn().mockResolvedValue({
+      ok: status >= 200 && status < 300,
+      status,
+      json: () => Promise.resolve(body),
+      text: () => Promise.resolve(JSON.stringify(body)),
+    }),
+    { preconnect() {} },
+  );
+  return fn;
 }
 
 beforeEach(() => {
@@ -85,7 +89,7 @@ describe('fetchActivityEvents', () => {
     const event3 = { ...sampleEvent, object_id: 'a3' };
 
     let callCount = 0;
-    globalThis.fetch = vi.fn().mockImplementation(() => {
+    globalThis.fetch = Object.assign(vi.fn().mockImplementation(() => {
       callCount++;
       if (callCount === 1) {
         return Promise.resolve({
@@ -99,14 +103,14 @@ describe('fetchActivityEvents', () => {
         json: () => Promise.resolve({ results: [event3] }),
         text: () => Promise.resolve(''),
       });
-    });
+    }), { preconnect() {} });
 
     const result = await fetchActivityEvents('tok', '2026-02-19');
     expect(result).toEqual([event1, event2, event3]);
     expect(callCount).toBe(2);
 
     // Second call should include cursor parameter
-    const secondUrl = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[1][0] as string;
+    const secondUrl = (globalThis.fetch as ReturnType<typeof mockFetch>).mock.calls[1][0] as string;
     expect(secondUrl).toContain('cursor=cur1');
   });
 
@@ -131,6 +135,16 @@ describe('fetchActivityEvents', () => {
     expect(url).toContain('limit=100');
   });
 
+  it('includes date_to when until is provided', async () => {
+    const fn = mockFetch({ results: [] });
+    globalThis.fetch = fn;
+
+    await fetchActivityEvents('tok', '2026-02-01', '2026-02-28');
+
+    const url = fn.mock.calls[0][0] as string;
+    expect(url).toContain('date_to=2026-02-28');
+  });
+
   it('sends Authorization header with token', async () => {
     const fn = mockFetch({ results: [] });
     globalThis.fetch = fn;
@@ -150,7 +164,7 @@ describe('fetchActivityEvents', () => {
 
   it('throws on HTTP error mid-pagination', async () => {
     let callCount = 0;
-    globalThis.fetch = vi.fn().mockImplementation(() => {
+    globalThis.fetch = Object.assign(vi.fn().mockImplementation(() => {
       callCount++;
       if (callCount === 1) {
         return Promise.resolve({
@@ -164,7 +178,7 @@ describe('fetchActivityEvents', () => {
         json: () => Promise.resolve({}),
         text: () => Promise.resolve('Internal Server Error'),
       });
-    });
+    }), { preconnect() {} });
 
     await expect(fetchActivityEvents('tok', '2026-02-01')).rejects.toThrow('HTTP 500');
   });
