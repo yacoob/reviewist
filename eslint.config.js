@@ -12,7 +12,6 @@ export default tseslint.config(
     languageOptions: {
       globals: {
         ...globals.browser,
-        __NOTE_PROJECTS__: 'readonly',
       },
     },
   },

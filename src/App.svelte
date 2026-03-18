@@ -8,6 +8,7 @@
   import FilterChips from './components/FilterChips.svelte';
   import ActionList from './components/ActionList.svelte';
   import DebugLog from './components/DebugLog.svelte';
+  import { NOTE_PROJECT_NAMES } from './lib/constants';
 
   let statusMessage = $state('');
   let statusType: StatusType = $state(null);
@@ -15,7 +16,7 @@
 
   let noteProjectIds = $derived(
     new Set(
-      __NOTE_PROJECTS__
+      NOTE_PROJECT_NAMES
         .map((name) => Object.entries(store.projects).find(([, p]) => p.name === name)?.[0])
         .filter((id): id is string => id != null),
     ),

@@ -4,9 +4,6 @@ import { VitePWA } from 'vite-plugin-pwa';
 import generateIcons from './scripts/generate-icons.ts';
 
 export default defineConfig({
-  define: {
-    __NOTE_PROJECTS__: JSON.stringify(['Aside', 'Within']),
-  },
   plugins: [
     svelte(),
     generateIcons(),
