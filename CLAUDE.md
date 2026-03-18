@@ -13,7 +13,7 @@ Reviewist uses bujo-inspired vocabulary, distinct from Todoist's:
 | Reviewist term | Todoist equivalent | Meaning |
 |---|---|---|
 | **Action** | Task | Something you do — has a checkmark, completion time |
-| **Note** | Uncompletable task (`* ` prefix) | Something you record — rendered with a colored bullet, no checkmark. Lives in a **note project** (configured via `__NOTE_PROJECTS__` in vite.config.ts). |
+| **Note** | Uncompletable task (`* ` prefix) | Something you record — rendered with a colored bullet, no checkmark. Lives in a **note project** (configured via `NOTE_PROJECT_NAMES` in `src/lib/constants.ts`). |
 
 The Todoist API types (`task_id`, `ActivityEvent`, etc.) keep Todoist's naming. Reviewist's own types use the new vocabulary: `CompletedAction`, `DedupedAction`, `groupActionsByDay()`, etc.
 
@@ -38,7 +38,7 @@ These are the workarounds adopted for Todoist's limitations:
 | Recurring tasks (from completion) | `every! 2 weeks` | The `!` syntax |
 | Month floaters ("do sometime in March") | **Deadline** set to end of month | e.g. deadline March 31. Stays hidden until 7 days before. Filterable: `deadline: March 31` or `deadline before: April 1`. Cannot use deadlines on recurring tasks. |
 | Unmoored "eventually" tasks | No date, live in a project | Invisible in time-based views until assigned a date |
-| Notes (not actions) | Separate "Aside" / "Within" projects | Kludge. Everything is a checkbox. Filter out of working views. Configured via `__NOTE_PROJECTS__` in vite.config.ts. |
+| Notes (not actions) | Separate "Aside" / "Within" projects | Kludge. Everything is a checkbox. Filter out of working views. Configured via `NOTE_PROJECT_NAMES` in `src/lib/constants.ts`. |
 | Tags/grouping | Labels | `@feline`, `@cleaning`, etc. |
 | Weekly completed review | **This app** | The whole point |
 
@@ -92,7 +92,7 @@ When a recurring task is completed, Todoist doesn't create a separate "completed
 
 ## Current State
 
-Vite + Svelte 5 + TypeScript app. Build produces a single self-contained HTML file via `vite-plugin-singlefile`. Dev environment managed by mise (Node 22 LTS).
+Vite + Svelte 5 + TypeScript app. Build produces a single self-contained HTML file via `vite-plugin-singlefile`. Dev environment managed by mise (Bun runtime).
 
 ### Project Structure
 
@@ -104,13 +104,16 @@ reviewist/
 ├── tsconfig.json
 ├── svelte.config.js
 ├── eslint.config.js
-├── mise.toml               # mise dev environment (Node 22)
+├── mise.toml               # mise dev environment (Bun)
+├── cli/
+│   └── main.ts             # CLI export tool entry point
 ├── src/
 │   ├── main.ts             # Mount App
 │   ├── App.svelte          # Root: shared state, fetch orchestration, layout
 │   ├── app.css             # Global: CSS vars, reset, typography, print, responsive
 │   ├── lib/
 │   │   ├── types.ts        # Interfaces for API responses + internal state
+│   │   ├── constants.ts    # NOTE_PROJECT_NAMES, BLOCKLIST
 │   │   ├── api.ts          # Todoist fetch functions (projects, activity events)
 │   │   ├── reconcile.ts    # Activity event reconciliation (complete/uncomplete pairing)
 │   │   ├── colors.ts       # TODOIST_COLORS map
@@ -181,7 +184,7 @@ Each `uncompleted` event cancels the most recent preceding `completed` event for
 
 #### Blocklist
 
-A build-time blocklist (`src/blocklist.txt`, one Todoist task ID per line) filters out known-bad IDs before reconciliation. Embedded via Vite's `?raw` import — edit the file and rebuild.
+A blocklist of known-bad Todoist task IDs (`BLOCKLIST` in `src/lib/constants.ts`) filters out IDs before reconciliation. Used by both the web app and the CLI export tool.
 
 ### Features
 
@@ -206,6 +209,8 @@ A build-time blocklist (`src/blocklist.txt`, one Todoist task ID per line) filte
 - `bun run test` — vitest unit tests
 - `bun run lint` — ESLint with Svelte + TypeScript rules
 - `bun run validate` — runs tests, type checks, and lint in sequence. **Use this to verify changes.**
+- `bun run cli/main.ts` — run CLI export tool (requires `TODOIST_TOKEN` env var)
+- `bun build --compile cli/main.ts --outfile reviewist-export` — compile CLI to standalone binary
 
 ### Testing
 
