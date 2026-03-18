@@ -4,6 +4,8 @@ import { reconcile } from './lib/reconcile';
 import { BLOCKLIST, NOTE_PROJECT_NAMES } from './lib/constants';
 import { SIX_WEEKS_MS } from './lib/events';
 import { fmtDate } from './lib/dates';
+import { buildTemplateData } from './lib/template-data';
+import { renderTemplate } from './lib/render';
 import type { Project } from './lib/types';
 
 function die(msg: string): never {
@@ -22,6 +24,7 @@ const { values: args } = parseArgs({
     until: { type: 'string' },
     'note-projects': { type: 'string' },
     blocklist: { type: 'string' },
+    format: { type: 'string', default: 'json' },
   },
 });
 
@@ -61,20 +64,24 @@ const noteProjectIds = new Set(
     .filter((id): id is string => id != null),
 );
 
-// Build output: only include referenced projects
-const referencedProjects: Record<string, Project> = {};
-for (const a of actions) {
-  if (a.project_id && projects[a.project_id]) {
-    referencedProjects[a.project_id] = projects[a.project_id];
+const format = args.format ?? 'json';
+
+if (format === 'json') {
+  const referencedProjects: Record<string, Project> = {};
+  for (const a of actions) {
+    if (a.project_id && projects[a.project_id]) {
+      referencedProjects[a.project_id] = projects[a.project_id];
+    }
   }
+  const output = {
+    projects: referencedProjects,
+    actions: actions.map(a => ({
+      ...a,
+      is_note: noteProjectIds.has(a.project_id),
+    })),
+  };
+  console.log(JSON.stringify(output, null, 2));
+} else {
+  const data = buildTemplateData(actions, projects, noteProjectIds, { since, until });
+  process.stdout.write(renderTemplate(format, data));
 }
-
-const output = {
-  projects: referencedProjects,
-  actions: actions.map(a => ({
-    ...a,
-    is_note: noteProjectIds.has(a.project_id),
-  })),
-};
-
-console.log(JSON.stringify(output, null, 2));
