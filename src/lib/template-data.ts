@@ -1,5 +1,6 @@
 import type { CompletedAction, Project } from './types';
 import { fmtLocalDate, fmtLocalTime, formatDayLabel } from './dates';
+import { sortKey } from './actions';
 
 export interface TemplateAction {
   content: string;
@@ -56,13 +57,15 @@ export function buildTemplateData(
           seen[key].action.time = fmtLocalTime(a.completed_at);
           seen[key].completed_at = a.completed_at;
         } else {
+          const isNote = noteProjectIds.has(a.project_id);
+          const content = isNote ? a.content.replace(/^\*\s+/, '') : a.content;
           const acc: Accumulator = {
             action: {
-              content: a.content,
+              content,
               time: fmtLocalTime(a.completed_at),
               project_name: proj?.name ?? 'Unknown',
               project_color: proj?.color ?? null,
-              is_note: noteProjectIds.has(a.project_id),
+              is_note: isNote,
               count: 1,
             },
             completed_at: a.completed_at,
@@ -72,10 +75,13 @@ export function buildTemplateData(
         }
       }
 
-      deduped.sort((a, b) => a.completed_at.localeCompare(b.completed_at));
+      const notes = deduped.filter(d => d.action.is_note);
+      const tasks = deduped.filter(d => !d.action.is_note);
+      notes.sort((a, b) => sortKey(a.action.content).localeCompare(sortKey(b.action.content)));
+      tasks.sort((a, b) => a.completed_at.localeCompare(b.completed_at));
 
       const label = date === 'Unknown' ? 'Unknown date' : formatDayLabel(date);
-      return { date, label, actions: deduped.map(d => d.action) };
+      return { date, label, actions: [...notes, ...tasks].map(d => d.action) };
     });
 
   return { days, range };

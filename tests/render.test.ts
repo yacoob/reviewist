@@ -38,13 +38,13 @@ describe('renderTemplate', () => {
     expect(BUILTIN_FORMATS).toContain('markdown');
   });
 
-  it('renders notes with bold content', () => {
+  it('renders notes without bold or timestamp', () => {
     const noteData: TemplateData = {
       days: [{
         date: '2026-02-20',
         label: 'Feb 20 · Friday',
         actions: [{
-          content: 'Dawn returns',
+          content: 'Unicorn spotted near the pond',
           time: '14:00',
           project_name: 'Aside',
           project_color: 'grey',
@@ -55,7 +55,9 @@ describe('renderTemplate', () => {
       range: { since: '2026-02-01', until: '2026-02-28' },
     };
     const result = renderTemplate('markdown', noteData);
-    expect(result).toContain('**Dawn returns**');
+    expect(result).toContain('Unicorn spotted near the pond');
+    expect(result).not.toContain('**Unicorn spotted near the pond**');
+    expect(result).not.toContain('14:00');
   });
 
   it('renders recurring action count', () => {
@@ -83,9 +85,9 @@ describe('renderTemplate', () => {
     expect(result).toContain('# Review: 2026-02-01 to 2026-02-28');
   });
 
-  it('renders project name in italics', () => {
+  it('does not render project name', () => {
     const result = renderTemplate('markdown', data);
-    expect(result).toContain('_Home_');
+    expect(result).not.toContain('Home');
   });
 
   it('does not show count for non-recurring actions', () => {

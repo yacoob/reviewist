@@ -81,6 +81,33 @@ describe('buildTemplateData', () => {
     expect(result.days[0].actions[0].is_note).toBe(true);
   });
 
+  it('strips "* " prefix from note content', () => {
+    const result = buildTemplateData(
+      [action({ content: '* Goblin sighting confirmed', project_id: 'p2' })],
+      projects, noteIds, range,
+    );
+    expect(result.days[0].actions[0].content).toBe('Goblin sighting confirmed');
+  });
+
+  it('does not strip "* " prefix from non-note content', () => {
+    const result = buildTemplateData(
+      [action({ content: '* starred item', project_id: 'p1' })],
+      projects, noteIds, range,
+    );
+    expect(result.days[0].actions[0].content).toBe('* starred item');
+  });
+
+  it('sorts notes alphabetically (ignoring leading emoji) before actions', () => {
+    const actions = [
+      action({ content: 'Feed the kraken', completed_at: '2026-02-20T08:00:00Z', project_id: 'p1' }),
+      action({ content: '* Yeti footprints found', completed_at: '2026-02-20T10:00:00Z', project_id: 'p2', task_id: 't2', id: 'c2' }),
+      action({ content: '* 🎉 Dragon eggs hatched', completed_at: '2026-02-20T12:00:00Z', project_id: 'p2', task_id: 't3', id: 'c3' }),
+    ];
+    const result = buildTemplateData(actions, projects, noteIds, range);
+    const contents = result.days[0].actions.map(a => a.content);
+    expect(contents).toEqual(['🎉 Dragon eggs hatched', 'Yeti footprints found', 'Feed the kraken']);
+  });
+
   it('uses "Unknown" and null color for missing projects', () => {
     const result = buildTemplateData(
       [action({ project_id: 'missing' })],
