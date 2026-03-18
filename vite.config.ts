@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { VitePWA } from 'vite-plugin-pwa';
-import generateIcons from './scripts/generate-icons.ts';
+import generateIcons from './src/generate-icons.ts';
 
 export default defineConfig({
   plugins: [

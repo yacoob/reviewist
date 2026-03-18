@@ -105,10 +105,14 @@ reviewist/
 ├── svelte.config.js
 ├── eslint.config.js
 ├── mise.toml               # mise dev environment (Bun)
-├── cli/
-│   └── main.ts             # CLI export tool entry point
+├── scripts/
+│   ├── todoist-sweep-aside.sh      # Daily cron: closes uncompletable Aside tasks due today
+│   ├── todoist-sweep-aside.service # systemd service unit
+│   └── todoist-sweep-aside.timer   # systemd timer unit
 ├── src/
 │   ├── main.ts             # Mount App
+│   ├── cli.ts              # CLI export tool entry point
+│   ├── generate-icons.ts   # Vite plugin: generates PWA icons from SVG at build time
 │   ├── App.svelte          # Root: shared state, fetch orchestration, layout
 │   ├── app.css             # Global: CSS vars, reset, typography, print, responsive
 │   ├── lib/
@@ -209,8 +213,8 @@ A blocklist of known-bad Todoist task IDs (`BLOCKLIST` in `src/lib/constants.ts`
 - `bun run test` — vitest unit tests
 - `bun run lint` — ESLint with Svelte + TypeScript rules
 - `bun run validate` — runs tests, type checks, and lint in sequence. **Use this to verify changes.**
-- `bun run cli/main.ts` — run CLI export tool (requires `TODOIST_TOKEN` env var)
-- `bun build --compile cli/main.ts --outfile reviewist-export` — compile CLI to standalone binary
+- `bun run src/cli.ts` — run CLI export tool (requires `TODOIST_TOKEN` env var)
+- `bun build --compile src/cli.ts --outfile reviewist-export` — compile CLI to standalone binary
 
 ### Testing
 

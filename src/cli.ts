@@ -1,10 +1,10 @@
 import { parseArgs } from 'util';
-import { fetchProjects, fetchActivityEvents } from '../src/lib/api';
-import { reconcile } from '../src/lib/reconcile';
-import { BLOCKLIST, NOTE_PROJECT_NAMES } from '../src/lib/constants';
-import { SIX_WEEKS_MS } from '../src/lib/events';
-import { fmtDate } from '../src/lib/dates';
-import type { Project } from '../src/lib/types';
+import { fetchProjects, fetchActivityEvents } from './lib/api';
+import { reconcile } from './lib/reconcile';
+import { BLOCKLIST, NOTE_PROJECT_NAMES } from './lib/constants';
+import { SIX_WEEKS_MS } from './lib/events';
+import { fmtDate } from './lib/dates';
+import type { Project } from './lib/types';
 
 function die(msg: string): never {
   console.error(`error: ${msg}`);
