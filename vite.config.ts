@@ -3,8 +3,20 @@ import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { VitePWA } from 'vite-plugin-pwa';
 import generateIcons from './src/generate-icons.ts';
 
+function rawNjk() {
+  return {
+    name: 'raw-njk',
+    transform(code: string, id: string) {
+      if (id.endsWith('.njk') || id.endsWith('.njk?import')) {
+        return { code: `export default ${JSON.stringify(code)};`, map: null };
+      }
+    },
+  };
+}
+
 export default defineConfig({
   plugins: [
+    rawNjk(),
     svelte(),
     generateIcons(),
     VitePWA({

@@ -1,9 +1,7 @@
 import nunjucks from 'nunjucks';
 import { readFileSync, existsSync } from 'node:fs';
 
-// Built-in templates — exported as strings from .ts files so they work
-// in both vitest (Vite transform) and bun build --compile.
-import markdownTemplate from '../templates/markdown';
+import markdownTemplate from '../templates/markdown.njk' with { type: 'text' };
 
 const builtins: Record<string, string> = {
   markdown: markdownTemplate,
