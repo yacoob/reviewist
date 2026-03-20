@@ -30,7 +30,7 @@ describe('renderMarkdown', () => {
     const result = renderMarkdown([action()], projects, noteIds, range);
     expect(result).toContain('# Review: 2026-02-01 to 2026-02-28');
     expect(result).toMatch(/^## .+/m);
-    expect(result).toMatch(/- \d{2}:\d{2} · Test action/);
+    expect(result).toMatch(/- \[x] \d{2}:\d{2} · Test action/);
   });
 
   it('groups actions by local date', () => {
@@ -82,6 +82,18 @@ describe('renderMarkdown', () => {
     expect(result).not.toContain('×');
   });
 
+  it('renders notes as plain list items, actions as checked', () => {
+    const actions = [
+      action({ content: '* Unicorn spotted', project_id: 'p2' }),
+      action({ content: 'Feed the kraken', project_id: 'p1', task_id: 't2', id: 'c2' }),
+    ];
+    const result = renderMarkdown(actions, projects, noteIds, range);
+    expect(result).toContain('- Unicorn spotted');
+    expect(result).not.toContain('- [x] Unicorn');
+    expect(result).toContain('- [x]');
+    expect(result).toContain('Feed the kraken');
+  });
+
   it('renders notes without timestamp', () => {
     const result = renderMarkdown(
       [action({ content: '* Unicorn spotted', project_id: 'p2' })],
@@ -105,6 +117,7 @@ describe('renderMarkdown', () => {
       [action({ content: '* starred item', project_id: 'p1' })],
       projects, noteIds, range,
     );
+    expect(result).toContain('- [x]');
     expect(result).toContain('* starred item');
   });
 

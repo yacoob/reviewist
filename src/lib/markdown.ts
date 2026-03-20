@@ -71,7 +71,7 @@ export function renderMarkdown(
     }
     for (const task of tasks) {
       const count = task.count > 1 ? ` ×${task.count}` : '';
-      lines.push(`- ${task.time} · ${task.content}${count}`);
+      lines.push(`- [x] ${task.time} · ${task.content}${count}`);
     }
   }
 
