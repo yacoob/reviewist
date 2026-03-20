@@ -124,12 +124,9 @@ reviewist/
 │   │   ├── cache.ts        # IndexedDB cache with integrity checks (SHA-256 + structural)
 │   │   ├── dates.ts        # fmtDate, formatDayLabel
 │   │   ├── actions.ts      # Grouping, dedup, project sorting logic
-│   │   ├── template-data.ts # buildTemplateData: groups actions by day for template rendering
-│   │   ├── render.ts       # renderTemplate: Nunjucks renderer with built-in/filesystem resolution
+│   │   ├── markdown.ts     # Grouping, dedup, sorting, and markdown rendering for CLI export
 │   │   ├── store.svelte.ts # Reactive store: fetch orchestration, incremental fetching
 │   │   └── storage.ts      # localStorage helpers (token, excluded projects, refresh interval)
-│   ├── templates/
-│   │   └── markdown.ts     # Built-in markdown template (Nunjucks syntax)
 │   └── components/
 │       ├── Header.svelte       # Title, date range, refresh indicator, settings toggle
 │       ├── SetupPanel.svelte   # Token, refresh interval, fetch/forget buttons
@@ -149,8 +146,7 @@ reviewist/
     ├── reconcile.bench.ts
     ├── storage.test.ts
     ├── actions.test.ts
-    ├── template-data.test.ts
-    └── render.test.ts
+    └── markdown.test.ts
 ```
 
 ### Architecture
@@ -220,8 +216,7 @@ A blocklist of known-bad Todoist task IDs (`BLOCKLIST` in `src/lib/constants.ts`
 - `bun run lint` — ESLint with Svelte + TypeScript rules
 - `bun run validate` — runs tests, type checks, and lint in sequence. **Use this to verify changes.**
 - `bun run src/cli.ts` — CLI export tool, JSON output (requires `TODOIST_TOKEN` env var)
-- `bun run src/cli.ts --format markdown` — CLI export with built-in markdown template
-- `bun run src/cli.ts --format ./custom.njk` — CLI export with custom Nunjucks template
+- `bun run src/cli.ts --format markdown` — CLI export with markdown output
 - `bun build --compile src/cli.ts --outfile reviewist-export` — compile CLI to standalone binary
 
 ### Testing
