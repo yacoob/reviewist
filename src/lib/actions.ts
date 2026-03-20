@@ -20,18 +20,17 @@ interface DayGroup {
   projectGroups: ProjectGroup[];
 }
 
-function dedup(actions: CompletedAction[]): DedupedAction[] {
-  const sorted = [...actions].sort((a, b) =>
-    a.completed_at.localeCompare(b.completed_at),
-  );
+export function dedup(actions: CompletedAction[]): DedupedAction[] {
   const result: DedupedAction[] = [];
   const seen: Record<string, DedupedAction> = {};
-  for (const t of sorted) {
+  for (const t of actions) {
     const key = t.content + '||' + t.project_id;
     if (seen[key]) {
       seen[key].count++;
       seen[key].allTimes.push(t.completed_at);
-      seen[key].completed_at = t.completed_at; // always latest — ascending sort above
+      if (t.completed_at > seen[key].completed_at) {
+        seen[key].completed_at = t.completed_at;
+      }
     } else {
       const entry: DedupedAction = { ...t, count: 1, allTimes: [t.completed_at] };
       seen[key] = entry;
