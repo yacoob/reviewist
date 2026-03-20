@@ -1,0 +1,8 @@
+/* Obsidian CSS snippet for Reviewist markdown output.
+   Prevents blockquote italics on notes in files with cssclasses: [reviewist].
+   Install: copy to .obsidian/snippets/ and enable in Settings → Appearance → CSS snippets. */
+
+body:not(.default-font-color) .reviewist blockquote,
+body:not(.default-font-color) .reviewist span.cm-quote.cm-quote-1 {
+  font-style: normal;
+}
