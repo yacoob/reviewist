@@ -123,7 +123,7 @@ reviewist/
 │   │   ├── reconcile.ts    # Activity event reconciliation (complete/uncomplete pairing)
 │   │   ├── colors.ts       # TODOIST_COLORS map
 │   │   ├── cache.ts        # IndexedDB cache with integrity checks (SHA-256 + structural)
-│   │   ├── dates.ts        # fmtDate, formatDayLabel
+│   │   ├── dates.ts        # fmtDate, formatDayLabel, monthKey, monthRange, startOfPreviousMonth
 │   │   ├── actions.ts      # eventsToActions pipeline, prepareNotes, sortActions, grouping, dedup
 │   │   ├── markdown.ts     # Markdown rendering for CLI export (uses sortActions for ordering)
 │   │   ├── store.svelte.ts # Reactive store: fetch orchestration, incremental fetching (uses eventsToActions)
@@ -216,8 +216,9 @@ A blocklist of known-bad Todoist task IDs (`BLOCKLIST` in `src/lib/constants.ts`
 - `bun run test` — vitest unit tests
 - `bun run lint` — ESLint with Svelte + TypeScript rules
 - `bun run validate` — runs tests, type checks, and lint in sequence. **Use this to verify changes.**
-- `bun run src/cli.ts` — CLI export tool, JSON output (requires `TODOIST_TOKEN` env var)
-- `bun run src/cli.ts --format markdown` — CLI export with markdown output (Obsidian-compatible frontmatter)
+- `bun run src/cli.ts` — CLI export tool, JSON output (requires `TODOIST_TOKEN` env var). Default range: current + previous month.
+- `bun run src/cli.ts --format markdown` — CLI export with markdown output to stdout (Obsidian-compatible frontmatter)
+- `bun run src/cli.ts --outdir ~/vault/reviews` — write monthly `YYYY/YYYY-MM.md` files to directory (overwrites existing)
 - `bun run src/cli.ts --help` — CLI usage and options
 - `bun build --compile src/cli.ts --outfile reviewist-export` — compile CLI to standalone binary
 
