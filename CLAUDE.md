@@ -13,7 +13,7 @@ Reviewist uses bujo-inspired vocabulary, distinct from Todoist's:
 | Reviewist term | Todoist equivalent | Meaning |
 |---|---|---|
 | **Action** | Task | Something you do — has a checkmark, completion time |
-| **Note** | Uncompletable task (`* ` prefix) | Something you record — rendered with a colored bullet, no checkmark. Lives in a **note project** (configured via `NOTE_PROJECT_NAMES` in `src/lib/constants.ts`). |
+| **Note** | Uncompletable task (`* ` prefix) | Something you record — rendered with an emoji in the gutter, no checkmark. The `* ` prefix is stripped during processing; notes without a leading emoji get a default one per project (configured via `NOTE_PROJECT_EMOJIS` in `src/lib/constants.ts`). Lives in a **note project** (configured via `NOTE_PROJECT_NAMES` in `src/lib/constants.ts`). |
 
 The Todoist API types (`task_id`, `ActivityEvent`, etc.) keep Todoist's naming. Reviewist's own types use the new vocabulary: `CompletedAction`, `DedupedAction`, `groupActionsByDay()`, etc.
 
@@ -108,7 +108,8 @@ reviewist/
 ├── scripts/
 │   ├── todoist-sweep-aside.sh      # Daily cron: closes uncompletable Aside tasks due today
 │   ├── todoist-sweep-aside.service # systemd service unit
-│   └── todoist-sweep-aside.timer   # systemd timer unit
+│   ├── todoist-sweep-aside.timer   # systemd timer unit
+│   └── obsidian-reviewist.css      # Obsidian CSS snippet: non-italic blockquotes for reviewist notes
 ├── src/
 │   ├── main.ts             # Mount App
 │   ├── cli.ts              # CLI export tool entry point
@@ -117,15 +118,15 @@ reviewist/
 │   ├── app.css             # Global: CSS vars, reset, typography, print, responsive
 │   ├── lib/
 │   │   ├── types.ts        # Interfaces for API responses + internal state
-│   │   ├── constants.ts    # NOTE_PROJECT_NAMES, BLOCKLIST
+│   │   ├── constants.ts    # NOTE_PROJECT_NAMES, NOTE_PROJECT_EMOJIS, BLOCKLIST
 │   │   ├── api.ts          # Todoist fetch functions (projects, activity events)
 │   │   ├── reconcile.ts    # Activity event reconciliation (complete/uncomplete pairing)
 │   │   ├── colors.ts       # TODOIST_COLORS map
 │   │   ├── cache.ts        # IndexedDB cache with integrity checks (SHA-256 + structural)
 │   │   ├── dates.ts        # fmtDate, formatDayLabel
-│   │   ├── actions.ts      # Grouping, dedup, project sorting logic
-│   │   ├── markdown.ts     # Grouping, dedup, sorting, and markdown rendering for CLI export
-│   │   ├── store.svelte.ts # Reactive store: fetch orchestration, incremental fetching
+│   │   ├── actions.ts      # eventsToActions pipeline, prepareNotes, sortActions, grouping, dedup
+│   │   ├── markdown.ts     # Markdown rendering for CLI export (uses sortActions for ordering)
+│   │   ├── store.svelte.ts # Reactive store: fetch orchestration, incremental fetching (uses eventsToActions)
 │   │   └── storage.ts      # localStorage helpers (token, excluded projects, refresh interval)
 │   └── components/
 │       ├── Header.svelte       # Title, date range, refresh indicator, settings toggle
@@ -133,7 +134,7 @@ reviewist/
 │       ├── StatusMessage.svelte # Error/info/loading bar
 │       ├── FilterChips.svelte  # Project filter toggles with Todoist colors
 │       ├── ActionList.svelte    # Day grouping, dedup, renders ActionItems
-│       ├── ActionItem.svelte   # Single action: check, content, project chip, time
+│       ├── ActionItem.svelte   # Single action: gutter (emoji or ✓), content, timestamp (far right)
 │       └── DebugLog.svelte     # Collapsible debug log panel
 └── tests/
     ├── api.test.ts
@@ -154,7 +155,7 @@ reviewist/
 #### Data flow
 
 1. **Fetch**: Activity log events (`completed` + `uncompleted`) via paginated API calls
-2. **Reconcile**: Sort events chronologically, pair uncompletes with their preceding completes, produce `CompletedAction[]`
+2. **Process** (`eventsToActions` pipeline): Filter blocklist → reconcile (pair uncompletes with completes) → `prepareNotes` (strip `* ` prefix, prepend default emoji) → `sortActions` (canonical order: note projects first by project then alphabetically, regular tasks by time)
 3. **Display**: Group by day, dedup recurring actions (×N badge), render with project colors
 
 #### Timezone convention
@@ -203,7 +204,7 @@ A blocklist of known-bad Todoist task IDs (`BLOCKLIST` in `src/lib/constants.ts`
 - Deduplicates repeated completions (recurring actions): shows ×N badge, latest timestamp, tooltip with all timestamps
 - Project filter chips as multi-select toggles, colored with Todoist project colors; note projects sort first
 - Project tags on actions link to `https://app.todoist.com/app/task/{id}`
-- Notes (uncompletable `* ` tasks from note projects) shown with colored bullet instead of checkmark
+- Notes (from note projects) shown with emoji in gutter instead of checkmark; `* ` prefix stripped, default emoji prepended per project (Aside: 🗓️, Within: 💬) when no leading emoji present
 - Print-friendly CSS
 - Dark theme, JetBrains Mono + DM Sans typography
 
@@ -216,7 +217,8 @@ A blocklist of known-bad Todoist task IDs (`BLOCKLIST` in `src/lib/constants.ts`
 - `bun run lint` — ESLint with Svelte + TypeScript rules
 - `bun run validate` — runs tests, type checks, and lint in sequence. **Use this to verify changes.**
 - `bun run src/cli.ts` — CLI export tool, JSON output (requires `TODOIST_TOKEN` env var)
-- `bun run src/cli.ts --format markdown` — CLI export with markdown output
+- `bun run src/cli.ts --format markdown` — CLI export with markdown output (Obsidian-compatible frontmatter)
+- `bun run src/cli.ts --help` — CLI usage and options
 - `bun build --compile src/cli.ts --outfile reviewist-export` — compile CLI to standalone binary
 
 ### Testing
