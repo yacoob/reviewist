@@ -24,8 +24,27 @@ const { values: args } = parseArgs({
     'note-projects': { type: 'string' },
     blocklist: { type: 'string' },
     format: { type: 'string', default: 'json' },
+    help: { type: 'boolean', default: false },
   },
 });
+
+if (args.help) {
+  console.log(`Usage: reviewist-export [options]
+
+Export completed Todoist actions as JSON or markdown.
+
+Options:
+  --format <json|markdown>   Output format (default: json)
+  --since <YYYY-MM-DD>       Start date (default: 6 weeks ago)
+  --until <YYYY-MM-DD>       End date (default: today)
+  --note-projects <a,b,...>  Comma-separated note project names
+  --blocklist <file>         File with task IDs to exclude (one per line)
+  --help                     Show this help
+
+Environment:
+  TODOIST_TOKEN              Todoist API token (required)`);
+  process.exit(0);
+}
 
 // Token
 const token = process.env.TODOIST_TOKEN;

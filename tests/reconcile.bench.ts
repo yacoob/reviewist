@@ -158,8 +158,8 @@ const scenarios: Scenario[] = [
   { name: 'Worst-case 5k (single task)', events: generateWorstCase(5000) },
 ];
 
-const WARMUP = 20;
-const RUNS = 200;
+const WARMUP = 100;
+const RUNS = 1000;
 
 console.log(`reconcile() benchmark — ${WARMUP} warmup + ${RUNS} measured runs\n`);
 
