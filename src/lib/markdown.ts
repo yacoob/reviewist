@@ -16,7 +16,13 @@ export function renderMarkdown(
   noteProjectIds: Set<string>,
   range: { since: string; until: string },
 ): string {
-  const lines: string[] = [`# Review: ${range.since} to ${range.until}`];
+  const lines: string[] = [
+    '---',
+    'cssclasses: [reviewist]',
+    '---',
+    '',
+    `# Review: ${range.since} to ${range.until}`,
+  ];
 
   // Group by local date
   const byDay: Record<string, CompletedAction[]> = {};

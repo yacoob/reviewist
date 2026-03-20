@@ -23,7 +23,10 @@ const range = { since: '2026-02-01', until: '2026-02-28' };
 describe('renderMarkdown', () => {
   it('renders range header', () => {
     const result = renderMarkdown([], projects, noteIds, range);
-    expect(result).toBe('# Review: 2026-02-01 to 2026-02-28\n');
+    expect(result).toContain('---\ncssclasses: [reviewist]\n---');
+    expect(result).toContain('# Review: 2026-02-01 to 2026-02-28');
+    // No day sections for empty input
+    expect(result).not.toMatch(/^## /m);
   });
 
   it('renders a single action with day header', () => {
