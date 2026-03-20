@@ -67,7 +67,7 @@ export function renderMarkdown(
     lines.push('', `## ${label}`);
 
     for (const note of notes) {
-      lines.push(`- ${note.content}`);
+      lines.push(`> ${note.content}`);
     }
     for (const task of tasks) {
       const count = task.count > 1 ? ` ×${task.count}` : '';

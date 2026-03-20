@@ -88,7 +88,7 @@ describe('renderMarkdown', () => {
       action({ content: 'Feed the kraken', project_id: 'p1', task_id: 't2', id: 'c2' }),
     ];
     const result = renderMarkdown(actions, projects, noteIds, range);
-    expect(result).toContain('- Unicorn spotted');
+    expect(result).toContain('> Unicorn spotted');
     expect(result).not.toContain('- [x] Unicorn');
     expect(result).toContain('- [x]');
     expect(result).toContain('Feed the kraken');
@@ -99,7 +99,7 @@ describe('renderMarkdown', () => {
       [action({ content: '* Unicorn spotted', project_id: 'p2' })],
       projects, noteIds, range,
     );
-    expect(result).toContain('- Unicorn spotted');
+    expect(result).toContain('> Unicorn spotted');
     expect(result).not.toMatch(/\d{2}:\d{2} · Unicorn/);
   });
 
@@ -108,7 +108,7 @@ describe('renderMarkdown', () => {
       [action({ content: '* Goblin sighting confirmed', project_id: 'p2' })],
       projects, noteIds, range,
     );
-    expect(result).toContain('- Goblin sighting confirmed');
+    expect(result).toContain('> Goblin sighting confirmed');
     expect(result).not.toContain('* Goblin');
   });
 
