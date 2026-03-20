@@ -1,5 +1,5 @@
 import type { CompletedAction, Project } from './types';
-import { fmtLocalDate, fmtLocalTime, formatDayLabel, isoWeek } from './dates';
+import { fmtLocalDate, fmtLocalTime, formatDayLabelStatic, isoWeek } from './dates';
 import { sortActions } from './actions';
 
 interface DedupEntry {
@@ -66,7 +66,7 @@ export function renderMarkdown(
       }
     }
 
-    const label = date === 'Unknown' ? 'Unknown date' : formatDayLabel(date);
+    const label = date === 'Unknown' ? 'Unknown date' : formatDayLabelStatic(date);
     lines.push('', `## ${label}`);
 
     for (const entry of deduped) {

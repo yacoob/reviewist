@@ -58,18 +58,23 @@ export function isoWeek(dateStr: string): number {
   return Math.ceil(((nearestThursday.getTime() - jan1.getTime()) / 86400000 + 1) / 7);
 }
 
-export function formatDayLabel(dateStr: string): string {
+/** Static day label: "Feb 20 · Friday". No relative labels. */
+export function formatDayLabelStatic(dateStr: string): string {
   const d = new Date(dateStr + 'T12:00:00');
+  const weekday = d.toLocaleDateString('en-US', { weekday: 'long' });
+  const month = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  return `${month} · ${weekday}`;
+}
+
+export function formatDayLabel(dateStr: string): string {
   const now = new Date();
   const today = fmtLocalDate(now);
   const yd = new Date(now);
   yd.setDate(yd.getDate() - 1);
   const yesterday = fmtLocalDate(yd);
 
-  const weekday = d.toLocaleDateString('en-US', { weekday: 'long' });
-  const month = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-
-  if (dateStr === today) return `${month} · Today`;
-  if (dateStr === yesterday) return `${month} · Yesterday`;
-  return `${month} · ${weekday}`;
+  const base = formatDayLabelStatic(dateStr);
+  if (dateStr === today) return `${base.split(' · ')[0]} · Today`;
+  if (dateStr === yesterday) return `${base.split(' · ')[0]} · Yesterday`;
+  return base;
 }
