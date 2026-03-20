@@ -22,7 +22,7 @@ const { values: args } = parseArgs({
     since: { type: 'string' },
     'note-projects': { type: 'string' },
     blocklist: { type: 'string' },
-    format: { type: 'string', default: 'json' },
+    format: { type: 'string' },
     outdir: { type: 'string' },
     help: { type: 'boolean', default: false },
   },
