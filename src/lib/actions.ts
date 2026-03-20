@@ -59,6 +59,22 @@ export function sortKey(content: string): string {
   return m ? m[0].toLowerCase() : content.toLowerCase();
 }
 
+/** Canonical sort: note projects first (by project, alphabetically within), then tasks by time. */
+export function sortActions<T extends { project_id: string; content: string; completed_at: string }>(
+  actions: T[],
+  projects: Record<string, Project>,
+  noteProjectIds: Set<string>,
+): T[] {
+  return [...actions].sort((a, b) => {
+    const projCmp = compareProjects(a.project_id, b.project_id, projects, noteProjectIds);
+    if (projCmp !== 0) return projCmp;
+    if (noteProjectIds.has(a.project_id)) {
+      return sortKey(a.content).localeCompare(sortKey(b.content));
+    }
+    return a.completed_at.localeCompare(b.completed_at);
+  });
+}
+
 function groupByProject(actions: DedupedAction[], projects: Record<string, Project>, noteProjectIds: Set<string>): ProjectGroup[] {
   const byProject: Record<string, DedupedAction[]> = {};
   for (const t of actions) {
@@ -104,7 +120,8 @@ export function eventsToActions(
   noteProjectIds: Set<string>,
 ): CompletedAction[] {
   const filtered = events.filter(e => !blocklist.has(e.object_id));
-  return prepareNotes(reconcile(filtered), noteProjectIds, projects);
+  const actions = prepareNotes(reconcile(filtered), noteProjectIds, projects);
+  return sortActions(actions, projects, noteProjectIds);
 }
 
 export function groupActionsByDay(actions: CompletedAction[], projects: Record<string, Project>, noteProjectIds: Set<string> = new Set()): DayGroup[] {

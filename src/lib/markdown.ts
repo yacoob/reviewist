@@ -1,6 +1,6 @@
 import type { CompletedAction, Project } from './types';
 import { fmtLocalDate, fmtLocalTime, formatDayLabel } from './dates';
-import { sortKey } from './actions';
+import { sortActions } from './actions';
 
 interface DedupEntry {
   content: string;
@@ -8,6 +8,7 @@ interface DedupEntry {
   is_note: boolean;
   count: number;
   completed_at: string;
+  project_id: string;
 }
 
 export function renderMarkdown(
@@ -24,9 +25,9 @@ export function renderMarkdown(
     `# Review: ${range.since} to ${range.until}`,
   ];
 
-  // Group by local date
+  const sorted = sortActions(actions, projects, noteProjectIds);
   const byDay: Record<string, CompletedAction[]> = {};
-  for (const a of actions) {
+  for (const a of sorted) {
     const date = a.completed_at ? fmtLocalDate(new Date(a.completed_at)) : 'Unknown';
     (byDay[date] ??= []).push(a);
   }
@@ -34,50 +35,39 @@ export function renderMarkdown(
   const sortedDates = Object.keys(byDay).sort();
 
   for (const date of sortedDates) {
-    const dayActions = byDay[date];
-    const sorted = [...dayActions].sort((a, b) =>
-      a.completed_at.localeCompare(b.completed_at),
-    );
-
-    // Dedup recurring actions
+    // Dedup recurring actions (preserves sorted order)
     const seen: Record<string, DedupEntry> = {};
     const deduped: DedupEntry[] = [];
-    for (const a of sorted) {
+    for (const a of byDay[date]) {
       const key = a.content + '||' + a.project_id;
       if (seen[key]) {
         seen[key].count++;
         seen[key].time = fmtLocalTime(a.completed_at);
         seen[key].completed_at = a.completed_at;
       } else {
-        const isNote = noteProjectIds.has(a.project_id);
-        const content = a.content;
         const entry: DedupEntry = {
-          content,
+          content: a.content,
           time: fmtLocalTime(a.completed_at),
-          is_note: isNote,
+          is_note: noteProjectIds.has(a.project_id),
           count: 1,
           completed_at: a.completed_at,
+          project_id: a.project_id,
         };
         seen[key] = entry;
         deduped.push(entry);
       }
     }
 
-    // Notes first (alphabetical), then actions (by time)
-    const notes = deduped.filter(d => d.is_note);
-    const tasks = deduped.filter(d => !d.is_note);
-    notes.sort((a, b) => sortKey(a.content).localeCompare(sortKey(b.content)));
-    tasks.sort((a, b) => a.completed_at.localeCompare(b.completed_at));
-
     const label = date === 'Unknown' ? 'Unknown date' : formatDayLabel(date);
     lines.push('', `## ${label}`);
 
-    for (const note of notes) {
-      lines.push(`> ${note.content}`);
-    }
-    for (const task of tasks) {
-      const count = task.count > 1 ? ` ×${task.count}` : '';
-      lines.push(`- [x] ${task.time} · ${task.content}${count}`);
+    for (const entry of deduped) {
+      if (entry.is_note) {
+        lines.push(`> ${entry.content}`);
+      } else {
+        const count = entry.count > 1 ? ` ×${entry.count}` : '';
+        lines.push(`- [x] ${entry.time} · ${entry.content}${count}`);
+      }
     }
   }
 
