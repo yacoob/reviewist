@@ -4,8 +4,7 @@ import { reconcile } from './lib/reconcile';
 import { BLOCKLIST, NOTE_PROJECT_NAMES } from './lib/constants';
 import { SIX_WEEKS_MS } from './lib/events';
 import { fmtDate } from './lib/dates';
-import { buildTemplateData } from './lib/template-data';
-import { renderTemplate } from './lib/render';
+import { renderMarkdown } from './lib/markdown';
 import type { Project } from './lib/types';
 
 function die(msg: string): never {
@@ -81,7 +80,8 @@ if (format === 'json') {
     })),
   };
   console.log(JSON.stringify(output, null, 2));
+} else if (format === 'markdown') {
+  process.stdout.write(renderMarkdown(actions, projects, noteProjectIds, { since, until: until ?? fmtDate(new Date()) }));
 } else {
-  const data = buildTemplateData(actions, projects, noteProjectIds, { since, until: until ?? fmtDate(new Date()) });
-  process.stdout.write(renderTemplate(format, data));
+  die(`Unknown format "${format}". Available: json, markdown`);
 }
