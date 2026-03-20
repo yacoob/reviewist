@@ -70,6 +70,22 @@ describe('renderMarkdown', () => {
     expect(earlyIdx).toBeLessThan(lateIdx);
   });
 
+  it('sorts actions across projects by completion time, not project name', () => {
+    const multiProjects: Record<string, Project> = {
+      p1: { name: 'Zebra', color: 'blue' },
+      p2: { name: 'Aside', color: 'grey' },
+      p3: { name: 'Alpha', color: 'green' },
+    };
+    const actions = [
+      action({ completed_at: '2026-02-20T18:00:00Z', content: 'Late from Alpha', project_id: 'p3', task_id: 't3', id: 'c3' }),
+      action({ completed_at: '2026-02-20T08:00:00Z', content: 'Early from Zebra', project_id: 'p1' }),
+    ];
+    const result = renderMarkdown(actions, multiProjects, new Set(['p2']), range);
+    const earlyIdx = result.indexOf('Early from Zebra');
+    const lateIdx = result.indexOf('Late from Alpha');
+    expect(earlyIdx).toBeLessThan(lateIdx);
+  });
+
   it('deduplicates recurring actions with count', () => {
     const actions = [
       action({ content: 'Recurring', completed_at: '2026-02-20T08:00:00Z', id: 'c1' }),

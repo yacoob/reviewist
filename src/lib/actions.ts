@@ -66,11 +66,17 @@ export function sortActions<T extends { project_id: string; content: string; com
   noteProjectIds: Set<string>,
 ): T[] {
   return [...actions].sort((a, b) => {
-    const projCmp = compareProjects(a.project_id, b.project_id, projects, noteProjectIds);
-    if (projCmp !== 0) return projCmp;
-    if (noteProjectIds.has(a.project_id)) {
+    const aNote = noteProjectIds.has(a.project_id);
+    const bNote = noteProjectIds.has(b.project_id);
+    // Notes always come before regular actions
+    if (aNote !== bNote) return aNote ? -1 : 1;
+    // Within notes: group by project, then alphabetically by content
+    if (aNote) {
+      const projCmp = compareProjects(a.project_id, b.project_id, projects, noteProjectIds);
+      if (projCmp !== 0) return projCmp;
       return sortKey(a.content).localeCompare(sortKey(b.content));
     }
+    // Regular actions: sort by timestamp only
     return a.completed_at.localeCompare(b.completed_at);
   });
 }
