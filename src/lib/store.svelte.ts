@@ -1,14 +1,14 @@
 import type { ActivityEvent, CompletedAction, Project } from './types';
 import { fmtDate } from './dates';
 import { fetchProjects, fetchActivityEvents } from './api';
-import { reconcile } from './reconcile';
+import { eventsToActions } from './actions';
 import {
   loadToken, saveToken as persistToken, forgetToken as clearStoredToken,
   loadExcludedProjects, saveExcludedProjects,
   loadRefreshInterval, saveRefreshInterval,
   loadDebugEnabled, saveDebugEnabled,
 } from './storage';
-import { BLOCKLIST } from './constants';
+import { BLOCKLIST, NOTE_PROJECT_NAMES } from './constants';
 import { loadCachedState, saveCachedState, clearCachedState } from './cache';
 
 import { newestEventDate, mergeEvents, SIX_WEEKS_MS, OVERLAP_MS } from './events';
@@ -21,6 +21,15 @@ let allActions: CompletedAction[] = $state([]);
 let projects: Record<string, Project> = $state({});
 let lastFetchTime: number | null = $state(null);
 let fetching = $state(false);
+let noteProjectIds: Set<string> = $state(new Set());
+
+function computeNoteProjectIds(projs: Record<string, Project>): Set<string> {
+  return new Set(
+    NOTE_PROJECT_NAMES
+      .map(name => Object.entries(projs).find(([, p]) => p.name === name)?.[0])
+      .filter((id): id is string => id != null),
+  );
+}
 
 // Internal event cache — not reactive, used for incremental fetch logic
 let cachedEvents: ActivityEvent[] = [];
@@ -61,8 +70,8 @@ async function doFetch(): Promise<{ error?: string }> {
         cachedEvents = cached.events;
         projects = cached.projects;
         lastFetchTime = cached.fetchedAt;
-        const filtered = cachedEvents.filter(e => !BLOCKLIST.has(e.object_id));
-        allActions = reconcile(filtered);
+        noteProjectIds = computeNoteProjectIds(projects);
+        allActions = eventsToActions(cachedEvents, projects, BLOCKLIST, noteProjectIds);
         log(`loaded ${cachedEvents.length} events and ${Object.keys(cached.projects).length} projects from IndexedDB cache (last fetched ${new Date(cached.fetchedAt).toLocaleTimeString()}), reconciled into ${allActions.length} actions`);
       } else {
         log('no IndexedDB cache found');
@@ -98,8 +107,8 @@ async function doFetch(): Promise<{ error?: string }> {
       log(`merged ${cachedEvents.length} cached + ${newEvents.length} fetched events into ${merged.length} events (${merged.length - cachedEvents.length} new)`);
     }
 
-    const filtered = merged.filter(e => !BLOCKLIST.has(e.object_id));
-    const newActions = reconcile(filtered);
+    noteProjectIds = computeNoteProjectIds(projMap);
+    const newActions = eventsToActions(merged, projMap, BLOCKLIST, noteProjectIds);
 
     // Update state
     cachedEvents = merged;
@@ -181,6 +190,7 @@ export const store = {
   get projects() { return projects; },
   get lastFetchTime() { return lastFetchTime; },
   get fetching() { return fetching; },
+  get noteProjectIds() { return noteProjectIds; },
   get debugEnabled() { return debugEnabled; },
   get debugLog() { return debugLog; },
 

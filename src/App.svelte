@@ -8,19 +8,9 @@
   import FilterChips from './components/FilterChips.svelte';
   import ActionList from './components/ActionList.svelte';
   import DebugLog from './components/DebugLog.svelte';
-  import { NOTE_PROJECT_NAMES } from './lib/constants';
-
   let statusMessage = $state('');
   let statusType: StatusType = $state(null);
   let setupVisible = $state(false);
-
-  let noteProjectIds = $derived(
-    new Set(
-      NOTE_PROJECT_NAMES
-        .map((name) => Object.entries(store.projects).find(([, p]) => p.name === name)?.[0])
-        .filter((id): id is string => id != null),
-    ),
-  );
 
   let searchOpen = $state(false);
   let searchInput = $state('');
@@ -160,11 +150,11 @@
     <FilterChips
       actions={store.allActions}
       projects={store.projects}
-      {noteProjectIds}
+      noteProjectIds={store.noteProjectIds}
       excludedProjects={store.excludedProjects}
       onToggle={handleToggleProject}
     />
-    <ActionList actions={store.allActions} excludedProjects={store.excludedProjects} projects={store.projects} {noteProjectIds} {searchQuery} />
+    <ActionList actions={store.allActions} excludedProjects={store.excludedProjects} projects={store.projects} noteProjectIds={store.noteProjectIds} {searchQuery} />
   {/if}
 </div>
 

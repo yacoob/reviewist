@@ -85,13 +85,13 @@ describe('renderMarkdown', () => {
     expect(result).not.toContain('×');
   });
 
-  it('renders notes as plain list items, actions as checked', () => {
+  it('renders notes as blockquotes, actions as checked list items', () => {
     const actions = [
-      action({ content: '* Unicorn spotted', project_id: 'p2' }),
+      action({ content: '🗓️ Unicorn spotted', project_id: 'p2' }),
       action({ content: 'Feed the kraken', project_id: 'p1', task_id: 't2', id: 'c2' }),
     ];
     const result = renderMarkdown(actions, projects, noteIds, range);
-    expect(result).toContain('> Unicorn spotted');
+    expect(result).toContain('> 🗓️ Unicorn spotted');
     expect(result).not.toContain('- [x] Unicorn');
     expect(result).toContain('- [x]');
     expect(result).toContain('Feed the kraken');
@@ -99,20 +99,19 @@ describe('renderMarkdown', () => {
 
   it('renders notes without timestamp', () => {
     const result = renderMarkdown(
-      [action({ content: '* Unicorn spotted', project_id: 'p2' })],
+      [action({ content: '🗓️ Unicorn spotted', project_id: 'p2' })],
       projects, noteIds, range,
     );
-    expect(result).toContain('> Unicorn spotted');
+    expect(result).toContain('> 🗓️ Unicorn spotted');
     expect(result).not.toMatch(/\d{2}:\d{2} · Unicorn/);
   });
 
-  it('strips "* " prefix from note content', () => {
+  it('renders pre-prepared note content', () => {
     const result = renderMarkdown(
-      [action({ content: '* Goblin sighting confirmed', project_id: 'p2' })],
+      [action({ content: '🗓️ Goblin sighting confirmed', project_id: 'p2' })],
       projects, noteIds, range,
     );
-    expect(result).toContain('> Goblin sighting confirmed');
-    expect(result).not.toContain('* Goblin');
+    expect(result).toContain('> 🗓️ Goblin sighting confirmed');
   });
 
   it('does not strip "* " prefix from non-note content', () => {
@@ -127,8 +126,8 @@ describe('renderMarkdown', () => {
   it('sorts notes alphabetically (ignoring leading emoji) before actions', () => {
     const actions = [
       action({ content: 'Feed the kraken', completed_at: '2026-02-20T08:00:00Z', project_id: 'p1' }),
-      action({ content: '* Yeti footprints found', completed_at: '2026-02-20T10:00:00Z', project_id: 'p2', task_id: 't2', id: 'c2' }),
-      action({ content: '* 🎉 Dragon eggs hatched', completed_at: '2026-02-20T12:00:00Z', project_id: 'p2', task_id: 't3', id: 'c3' }),
+      action({ content: '🗓️ Yeti footprints found', completed_at: '2026-02-20T10:00:00Z', project_id: 'p2', task_id: 't2', id: 'c2' }),
+      action({ content: '🎉 Dragon eggs hatched', completed_at: '2026-02-20T12:00:00Z', project_id: 'p2', task_id: 't3', id: 'c3' }),
     ];
     const result = renderMarkdown(actions, projects, noteIds, range);
     const dragonIdx = result.indexOf('Dragon eggs hatched');

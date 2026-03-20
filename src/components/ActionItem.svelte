@@ -10,19 +10,18 @@
   let { action, isNote = false }: Props = $props();
 
   let rawContent = $derived(action.content || action.task_id || '?');
-  let strippedContent = $derived(isNote ? rawContent.replace(/^\*\s+/, '') : rawContent);
   type ContentPart = { type: 'text'; text: string } | { type: 'link'; text: string; href: string };
   let contentParts: ContentPart[] = $derived((() => {
     const parts: ContentPart[] = [];
     const re = /\[([^\]]+)\]\(([^)]+)\)/g;
     let last = 0;
     let m;
-    while ((m = re.exec(strippedContent)) !== null) {
-      if (m.index > last) parts.push({ type: 'text', text: strippedContent.slice(last, m.index) });
+    while ((m = re.exec(rawContent)) !== null) {
+      if (m.index > last) parts.push({ type: 'text', text: rawContent.slice(last, m.index) });
       parts.push({ type: 'link', text: m[1], href: m[2] });
       last = m.index + m[0].length;
     }
-    if (last < strippedContent.length) parts.push({ type: 'text', text: strippedContent.slice(last) });
+    if (last < rawContent.length) parts.push({ type: 'text', text: rawContent.slice(last) });
     return parts;
   })());
 

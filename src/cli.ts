@@ -1,6 +1,6 @@
 import { parseArgs } from 'util';
 import { fetchProjects, fetchActivityEvents } from './lib/api';
-import { reconcile } from './lib/reconcile';
+import { eventsToActions } from './lib/actions';
 import { BLOCKLIST, NOTE_PROJECT_NAMES } from './lib/constants';
 import { SIX_WEEKS_MS } from './lib/events';
 import { fmtDate } from './lib/dates';
@@ -72,15 +72,15 @@ const [projects, events] = await Promise.all([
   fetchActivityEvents(token, since, until),
 ]);
 
-// Reconcile and filter
-const actions = reconcile(events).filter(a => !blocklist.has(a.task_id));
-
 // Determine note project IDs
 const noteProjectIds = new Set(
   noteProjectNames
     .map(name => Object.entries(projects).find(([, p]) => p.name === name)?.[0])
     .filter((id): id is string => id != null),
 );
+
+// Events → display-ready actions
+const actions = eventsToActions(events, projects, blocklist, noteProjectIds);
 
 const format = args.format ?? 'json';
 

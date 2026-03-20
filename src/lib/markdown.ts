@@ -50,7 +50,7 @@ export function renderMarkdown(
         seen[key].completed_at = a.completed_at;
       } else {
         const isNote = noteProjectIds.has(a.project_id);
-        const content = isNote ? a.content.replace(/^\*\s+/, '') : a.content;
+        const content = a.content;
         const entry: DedupEntry = {
           content,
           time: fmtLocalTime(a.completed_at),
