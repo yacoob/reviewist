@@ -173,6 +173,12 @@ describe('renderMarkdown', () => {
     expect(result).toContain('## Unknown date');
   });
 
+  it('uses custom title when provided', () => {
+    const result = renderMarkdown([], projects, noteIds, range, 'March 2026');
+    expect(result).toContain('# March 2026');
+    expect(result).not.toContain('Review:');
+  });
+
   it('ends with a trailing newline', () => {
     const result = renderMarkdown([action()], projects, noteIds, range);
     expect(result.endsWith('\n')).toBe(true);

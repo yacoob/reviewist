@@ -106,7 +106,9 @@ if (args.outdir) {
   const months = Object.keys(byMonth).sort();
   for (const mk of months) {
     const range = monthRange(mk);
-    const md = renderMarkdown(byMonth[mk], projects, noteProjectIds, range);
+    const [y, m] = mk.split('-').map(Number);
+    const monthTitle = new Date(y, m - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    const md = renderMarkdown(byMonth[mk], projects, noteProjectIds, range, monthTitle);
     const [year] = mk.split('-');
     const dir = `${args.outdir}/${year}`;
     mkdirSync(dir, { recursive: true });

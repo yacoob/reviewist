@@ -16,13 +16,14 @@ export function renderMarkdown(
   projects: Record<string, Project>,
   noteProjectIds: Set<string>,
   range: { since: string; until: string },
+  title?: string,
 ): string {
   const lines: string[] = [
     '---',
     'cssclasses: [reviewist]',
     '---',
     '',
-    `# Review: ${range.since} to ${range.until}`,
+    `# ${title ?? `Review: ${range.since} to ${range.until}`}`,
   ];
 
   const sorted = sortActions(actions, projects, noteProjectIds);
