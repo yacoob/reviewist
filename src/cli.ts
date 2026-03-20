@@ -2,8 +2,7 @@ import { parseArgs } from 'util';
 import { fetchProjects, fetchActivityEvents } from './lib/api';
 import { eventsToActions } from './lib/actions';
 import { BLOCKLIST, NOTE_PROJECT_NAMES } from './lib/constants';
-import { SIX_WEEKS_MS } from './lib/events';
-import { fmtDate } from './lib/dates';
+import { fmtDate, startOfPreviousMonth } from './lib/dates';
 import { renderMarkdown } from './lib/markdown';
 import type { Project } from './lib/types';
 
@@ -20,7 +19,6 @@ const { values: args } = parseArgs({
   args: process.argv.slice(2),
   options: {
     since: { type: 'string' },
-    until: { type: 'string' },
     'note-projects': { type: 'string' },
     blocklist: { type: 'string' },
     format: { type: 'string', default: 'json' },
@@ -35,8 +33,7 @@ Export completed Todoist actions as JSON or markdown.
 
 Options:
   --format <json|markdown>   Output format (default: json)
-  --since <YYYY-MM-DD>       Start date (default: 6 weeks ago)
-  --until <YYYY-MM-DD>       End date (default: today)
+  --since <YYYY-MM-DD>       Start date (default: 1st of previous month)
   --note-projects <a,b,...>  Comma-separated note project names
   --blocklist <file>         File with task IDs to exclude (one per line)
   --help                     Show this help
@@ -51,8 +48,7 @@ const token = process.env.TODOIST_TOKEN;
 if (!token) die('TODOIST_TOKEN environment variable is required');
 
 // Date range
-const since = args.since ?? fmtDate(new Date(Date.now() - SIX_WEEKS_MS));
-const until = args.until;
+const since = args.since ?? startOfPreviousMonth();
 
 // Note projects
 const noteProjectNames: readonly string[] = args['note-projects']
@@ -69,7 +65,7 @@ if (args.blocklist) {
 // Fetch
 const [projects, events] = await Promise.all([
   fetchProjects(token),
-  fetchActivityEvents(token, since, until),
+  fetchActivityEvents(token, since),
 ]);
 
 // Determine note project IDs
@@ -100,7 +96,7 @@ if (format === 'json') {
   };
   console.log(JSON.stringify(output, null, 2));
 } else if (format === 'markdown') {
-  process.stdout.write(renderMarkdown(actions, projects, noteProjectIds, { since, until: until ?? fmtDate(new Date()) }));
+  process.stdout.write(renderMarkdown(actions, projects, noteProjectIds, { since, until: fmtDate(new Date()) }));
 } else {
   die(`Unknown format "${format}". Available: json, markdown`);
 }
