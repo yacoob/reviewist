@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { groupActionsByDay, sortKey, compareProjects, prepareNotes } from '../src/lib/actions';
-import type { CompletedAction, Project } from '../src/lib/types';
+import { groupActionsByDay, sortKey, compareProjects, prepareNotes, eventsToActions } from '../src/lib/actions';
+import type { ActivityEvent, CompletedAction, Project } from '../src/lib/types';
 import { TODOIST_COLORS } from '../src/lib/colors';
 import { fmtLocalDate } from '../src/lib/dates';
 
@@ -326,5 +326,46 @@ describe('prepareNotes', () => {
       noteIdSet, noteProjects,
     );
     expect(result[0].content).toBe('🗓️ bare note');
+  });
+});
+
+function completedEvent(overrides: Partial<ActivityEvent> = {}): ActivityEvent {
+  return {
+    id: 1,
+    event_date: '2026-02-20T10:00:00Z',
+    event_type: 'completed',
+    object_id: 't1',
+    object_type: 'item',
+    parent_project_id: 'p1',
+    parent_item_id: null,
+    initiator_id: 'u1',
+    extra_data: { content: 'Test action' },
+    ...overrides,
+  };
+}
+
+const pipelineProjects: Record<string, Project> = {
+  p1: { name: 'Work', color: 'blue' },
+  aside: { name: 'Aside', color: 'grey' },
+};
+
+describe('eventsToActions', () => {
+  it('filters blocklisted events, reconciles, and prepares notes', () => {
+    const events = [
+      completedEvent({ object_id: 't1', extra_data: { content: 'Good task' } }),
+      completedEvent({ object_id: 'blocked', extra_data: { content: 'Bad task' } }),
+      completedEvent({ object_id: 't2', parent_project_id: 'aside', extra_data: { content: '* Some event' } }),
+    ];
+    const blocklist = new Set(['blocked']);
+    const pipelineNoteIds = new Set(['aside']);
+    const result = eventsToActions(events, pipelineProjects, blocklist, pipelineNoteIds);
+    expect(result).toHaveLength(2);
+    expect(result.find(a => a.task_id === 'blocked')).toBeUndefined();
+    expect(result.find(a => a.task_id === 't2')!.content).toBe('🗓️ Some event');
+  });
+
+  it('returns empty array for empty events', () => {
+    const result = eventsToActions([], pipelineProjects, new Set(), new Set());
+    expect(result).toEqual([]);
   });
 });

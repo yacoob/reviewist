@@ -1,4 +1,5 @@
-import type { CompletedAction, DedupedAction, Project } from './types';
+import type { ActivityEvent, CompletedAction, DedupedAction, Project } from './types';
+import { reconcile } from './reconcile';
 import { TODOIST_COLORS } from './colors';
 import { formatDayLabel, fmtLocalDate } from './dates';
 import { NOTE_PROJECT_EMOJIS } from './constants';
@@ -94,6 +95,16 @@ export function prepareNotes(
     }
     return { ...a, content };
   });
+}
+
+export function eventsToActions(
+  events: ActivityEvent[],
+  projects: Record<string, Project>,
+  blocklist: ReadonlySet<string>,
+  noteProjectIds: Set<string>,
+): CompletedAction[] {
+  const filtered = events.filter(e => !blocklist.has(e.object_id));
+  return prepareNotes(reconcile(filtered), noteProjectIds, projects);
 }
 
 export function groupActionsByDay(actions: CompletedAction[], projects: Record<string, Project>, noteProjectIds: Set<string> = new Set()): DayGroup[] {
