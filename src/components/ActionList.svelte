@@ -103,7 +103,6 @@
     border-left: 3px solid var(--box-color, var(--border));
     background: color-mix(in srgb, var(--box-color, transparent) 10%, transparent);
     padding-left: 0.75rem;
-    margin-bottom: 0.5rem;
     border-radius: 0 4px 4px 0;
   }
   .unfiled-header {
