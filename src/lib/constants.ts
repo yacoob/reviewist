@@ -1,5 +1,10 @@
 export const NOTE_PROJECT_NAMES: readonly string[] = ['Aside', 'Within'];
 
+export const NOTE_PROJECT_EMOJIS: Readonly<Record<string, string>> = {
+  'Aside': '🗓️',
+  'Within': '💬',
+};
+
 export const BLOCKLIST: ReadonlySet<string> = new Set([
   '69gqQwRw52w2V2Qg',
   '69gqQwWQr97Xhr4g',

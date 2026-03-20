@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { groupActionsByDay, sortKey, compareProjects } from '../src/lib/actions';
+import { groupActionsByDay, sortKey, compareProjects, prepareNotes } from '../src/lib/actions';
 import type { CompletedAction, Project } from '../src/lib/types';
 import { TODOIST_COLORS } from '../src/lib/colors';
 import { fmtLocalDate } from '../src/lib/dates';
@@ -250,5 +250,81 @@ describe('compareProjects', () => {
   it('sorts unfiled projects last', () => {
     expect(compareProjects('missing', 'reg1', testProjects, noteIds)).toBeGreaterThan(0);
     expect(compareProjects('missing', 'ev1', testProjects, noteIds)).toBeGreaterThan(0);
+  });
+});
+
+const noteProjects: Record<string, Project> = {
+  aside: { name: 'Aside', color: 'grey' },
+  within: { name: 'Within', color: 'grey' },
+  work: { name: 'Work', color: 'blue' },
+};
+const noteIdSet = new Set(['aside', 'within']);
+
+describe('prepareNotes', () => {
+  it('strips "* " prefix and prepends default emoji', () => {
+    const result = prepareNotes(
+      [action({ content: '* Some event', project_id: 'aside' })],
+      noteIdSet, noteProjects,
+    );
+    expect(result[0].content).toBe('🗓️ Some event');
+  });
+
+  it('does not strip "* " from non-note actions', () => {
+    const result = prepareNotes(
+      [action({ content: '* starred item', project_id: 'work' })],
+      noteIdSet, noteProjects,
+    );
+    expect(result[0].content).toBe('* starred item');
+  });
+
+  it('does not prepend emoji when note already starts with one', () => {
+    const result = prepareNotes(
+      [action({ content: '* ✨ sparkly note', project_id: 'aside' })],
+      noteIdSet, noteProjects,
+    );
+    expect(result[0].content).toBe('✨ sparkly note');
+  });
+
+  it('uses project-specific emoji (Within)', () => {
+    const result = prepareNotes(
+      [action({ content: '* chat message', project_id: 'within' })],
+      noteIdSet, noteProjects,
+    );
+    expect(result[0].content).toBe('💬 chat message');
+  });
+
+  it('leaves non-note actions unchanged', () => {
+    const result = prepareNotes(
+      [action({ content: 'Buy milk', project_id: 'work' })],
+      noteIdSet, noteProjects,
+    );
+    expect(result[0].content).toBe('Buy milk');
+  });
+
+  it('returns new array without mutating input', () => {
+    const input = [action({ content: '* event', project_id: 'aside' })];
+    const result = prepareNotes(input, noteIdSet, noteProjects);
+    expect(result).not.toBe(input);
+    expect(input[0].content).toBe('* event');
+  });
+
+  it('handles note project with no emoji mapping (no prefix added)', () => {
+    const customNoteIds = new Set(['unmapped']);
+    const customProjects: Record<string, Project> = {
+      unmapped: { name: 'Journal', color: 'grey' },
+    };
+    const result = prepareNotes(
+      [action({ content: '* entry', project_id: 'unmapped' })],
+      customNoteIds, customProjects,
+    );
+    expect(result[0].content).toBe('entry');
+  });
+
+  it('handles note without "* " prefix', () => {
+    const result = prepareNotes(
+      [action({ content: 'bare note', project_id: 'aside' })],
+      noteIdSet, noteProjects,
+    );
+    expect(result[0].content).toBe('🗓️ bare note');
   });
 });

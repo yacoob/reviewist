@@ -1,6 +1,9 @@
 import type { CompletedAction, DedupedAction, Project } from './types';
 import { TODOIST_COLORS } from './colors';
 import { formatDayLabel, fmtLocalDate } from './dates';
+import { NOTE_PROJECT_EMOJIS } from './constants';
+
+const LEADING_EMOJI_RE = /^\p{Extended_Pictographic}/u;
 
 interface ProjectGroup {
   projectId: string;
@@ -72,6 +75,25 @@ function groupByProject(actions: DedupedAction[], projects: Record<string, Proje
       return { projectId: pid, hex, unfiled, actions };
     })
     .sort((a, b) => compareProjects(a.projectId, b.projectId, projects, noteProjectIds));
+}
+
+export function prepareNotes(
+  actions: CompletedAction[],
+  noteProjectIds: Set<string>,
+  projects: Record<string, Project>,
+): CompletedAction[] {
+  return actions.map(a => {
+    if (!noteProjectIds.has(a.project_id)) return a;
+    let content = a.content.replace(/^\*\s+/, '');
+    if (!LEADING_EMOJI_RE.test(content)) {
+      const projectName = projects[a.project_id]?.name;
+      const emoji = projectName ? NOTE_PROJECT_EMOJIS[projectName] : undefined;
+      if (emoji) {
+        content = `${emoji} ${content}`;
+      }
+    }
+    return { ...a, content };
+  });
 }
 
 export function groupActionsByDay(actions: CompletedAction[], projects: Record<string, Project>, noteProjectIds: Set<string> = new Set()): DayGroup[] {
