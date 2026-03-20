@@ -1,5 +1,5 @@
 import type { CompletedAction, Project } from './types';
-import { fmtLocalDate, fmtLocalTime, formatDayLabel } from './dates';
+import { fmtLocalDate, fmtLocalTime, formatDayLabel, isoWeek } from './dates';
 import { sortActions } from './actions';
 
 interface DedupEntry {
@@ -35,7 +35,14 @@ export function renderMarkdown(
 
   const sortedDates = Object.keys(byDay).sort();
 
+  let lastWeek: number | null = null;
   for (const date of sortedDates) {
+    const week = date === 'Unknown' ? -1 : isoWeek(date);
+    if (lastWeek !== null && week !== lastWeek) {
+      lines.push('', '---');
+    }
+    lastWeek = week;
+
     // Dedup recurring actions (preserves sorted order)
     const seen: Record<string, DedupEntry> = {};
     const deduped: DedupEntry[] = [];

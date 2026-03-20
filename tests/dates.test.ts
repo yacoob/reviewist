@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { fmtDate, fmtLocalDate, fmtLocalTime, formatDayLabel, startOfPreviousMonth, monthKey, snapToMonthStart, monthRange } from '../src/lib/dates';
+import { fmtDate, fmtLocalDate, fmtLocalTime, formatDayLabel, startOfPreviousMonth, monthKey, snapToMonthStart, monthRange, isoWeek } from '../src/lib/dates';
 
 afterEach(() => {
   vi.useRealTimers();
@@ -85,6 +85,23 @@ describe('monthRange', () => {
 
   it('handles 30-day months', () => {
     expect(monthRange('2026-04')).toEqual({ since: '2026-04-01', until: '2026-04-30' });
+  });
+});
+
+describe('isoWeek', () => {
+  it('returns correct week number', () => {
+    // 2026-01-01 is a Thursday → ISO week 1
+    expect(isoWeek('2026-01-01')).toBe(1);
+  });
+
+  it('puts Monday and preceding Sunday in different weeks', () => {
+    // 2026-02-22 is Sunday, 2026-02-23 is Monday
+    expect(isoWeek('2026-02-23')).toBe(isoWeek('2026-02-22') + 1);
+  });
+
+  it('keeps same-week days together', () => {
+    // 2026-02-18 (Wed) and 2026-02-20 (Fri)
+    expect(isoWeek('2026-02-18')).toBe(isoWeek('2026-02-20'));
   });
 });
 

@@ -46,6 +46,28 @@ describe('renderMarkdown', () => {
     expect(headers).toHaveLength(2);
   });
 
+  it('inserts --- between weeks', () => {
+    // Feb 20 (Fri) and Feb 23 (Mon) are in different ISO weeks
+    const actions = [
+      action({ completed_at: '2026-02-20T10:00:00Z' }),
+      action({ completed_at: '2026-02-23T10:00:00Z', task_id: 't2', id: 'c2' }),
+    ];
+    const result = renderMarkdown(actions, projects, noteIds, range);
+    expect(result).toContain('\n---\n');
+  });
+
+  it('does not insert --- within the same week', () => {
+    // Feb 18 (Wed) and Feb 20 (Fri) are in the same ISO week
+    const actions = [
+      action({ completed_at: '2026-02-18T10:00:00Z' }),
+      action({ completed_at: '2026-02-20T10:00:00Z', task_id: 't2', id: 'c2' }),
+    ];
+    const result = renderMarkdown(actions, projects, noteIds, range);
+    // Strip frontmatter before checking for week separators
+    const body = result.replace(/^---\n[\s\S]*?\n---\n/, '');
+    expect(body).not.toContain('\n---\n');
+  });
+
   it('sorts days oldest-first', () => {
     const actions = [
       action({ completed_at: '2026-02-22T10:00:00Z', task_id: 't3', id: 'c3' }),

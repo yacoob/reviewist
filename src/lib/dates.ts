@@ -47,6 +47,17 @@ export function monthRange(ym: string): { since: string; until: string } {
   };
 }
 
+/** ISO 8601 week number for a YYYY-MM-DD date string. Weeks start on Monday. */
+export function isoWeek(dateStr: string): number {
+  const d = new Date(dateStr + 'T12:00:00');
+  // Nearest Thursday: current date + 4 - current day number (Mon=1..Sun=7)
+  const dayOfWeek = d.getDay() || 7; // convert Sun=0 to Sun=7
+  const nearestThursday = new Date(d.getTime());
+  nearestThursday.setDate(d.getDate() + 4 - dayOfWeek);
+  const jan1 = new Date(nearestThursday.getFullYear(), 0, 1);
+  return Math.ceil(((nearestThursday.getTime() - jan1.getTime()) / 86400000 + 1) / 7);
+}
+
 export function formatDayLabel(dateStr: string): string {
   const d = new Date(dateStr + 'T12:00:00');
   const now = new Date();
