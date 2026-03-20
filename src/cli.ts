@@ -2,9 +2,10 @@ import { parseArgs } from 'util';
 import { fetchProjects, fetchActivityEvents } from './lib/api';
 import { eventsToActions } from './lib/actions';
 import { BLOCKLIST, NOTE_PROJECT_NAMES } from './lib/constants';
-import { fmtDate, startOfPreviousMonth } from './lib/dates';
+import { fmtDate, startOfPreviousMonth, monthKey, monthRange, snapToMonthStart } from './lib/dates';
 import { renderMarkdown } from './lib/markdown';
-import type { Project } from './lib/types';
+import { mkdirSync } from 'fs';
+import type { CompletedAction, Project } from './lib/types';
 
 function die(msg: string): never {
   console.error(`error: ${msg}`);
@@ -22,6 +23,7 @@ const { values: args } = parseArgs({
     'note-projects': { type: 'string' },
     blocklist: { type: 'string' },
     format: { type: 'string', default: 'json' },
+    outdir: { type: 'string' },
     help: { type: 'boolean', default: false },
   },
 });
@@ -35,6 +37,7 @@ Options:
   --format <json|markdown>   Output format (default: json)
   --since <YYYY-MM-DD>       Start date (default: 1st of previous month)
   --note-projects <a,b,...>  Comma-separated note project names
+  --outdir <path>            Write monthly YYYY/YYYY-MM.md files to directory
   --blocklist <file>         File with task IDs to exclude (one per line)
   --help                     Show this help
 
@@ -43,12 +46,24 @@ Environment:
   process.exit(0);
 }
 
+if (args.outdir && args.format === 'json') {
+  die('--outdir produces markdown files; --format json is not compatible');
+}
+
 // Token
 const token = process.env.TODOIST_TOKEN;
 if (!token) die('TODOIST_TOKEN environment variable is required');
 
 // Date range
-const since = args.since ?? startOfPreviousMonth();
+let since = args.since ?? startOfPreviousMonth();
+
+if (args.outdir && args.since) {
+  const snapped = snapToMonthStart(args.since);
+  if (snapped !== args.since) {
+    console.error(`warning: --since snapped from ${args.since} to ${snapped} (--outdir requires full months)`);
+    since = snapped;
+  }
+}
 
 // Note projects
 const noteProjectNames: readonly string[] = args['note-projects']
@@ -80,7 +95,25 @@ const actions = eventsToActions(events, projects, blocklist, noteProjectIds);
 
 const format = args.format ?? 'json';
 
-if (format === 'json') {
+if (args.outdir) {
+  const byMonth: Record<string, CompletedAction[]> = {};
+  for (const a of actions) {
+    if (!a.completed_at) continue;
+    const mk = monthKey(a.completed_at);
+    (byMonth[mk] ??= []).push(a);
+  }
+
+  const months = Object.keys(byMonth).sort();
+  for (const mk of months) {
+    const range = monthRange(mk);
+    const md = renderMarkdown(byMonth[mk], projects, noteProjectIds, range);
+    const [year] = mk.split('-');
+    const dir = `${args.outdir}/${year}`;
+    mkdirSync(dir, { recursive: true });
+    await Bun.write(`${dir}/${mk}.md`, md);
+    console.error(`wrote ${dir}/${mk}.md (${byMonth[mk].length} actions)`);
+  }
+} else if (format === 'json') {
   const referencedProjects: Record<string, Project> = {};
   for (const a of actions) {
     if (a.project_id && projects[a.project_id]) {
