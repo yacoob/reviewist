@@ -129,12 +129,17 @@ export function eventsToActions(
   return sortActions(actions, projects, noteProjectIds);
 }
 
-export function groupActionsByDay(actions: CompletedAction[], projects: Record<string, Project>, noteProjectIds: Set<string> = new Set()): DayGroup[] {
+export function groupByDay(actions: CompletedAction[]): Record<string, CompletedAction[]> {
   const grouped: Record<string, CompletedAction[]> = {};
   for (const t of actions) {
     const date = t.completed_at ? fmtLocalDate(new Date(t.completed_at)) : 'Unknown';
     (grouped[date] ??= []).push(t);
   }
+  return grouped;
+}
+
+export function groupActionsByDay(actions: CompletedAction[], projects: Record<string, Project>, noteProjectIds: Set<string> = new Set()): DayGroup[] {
+  const grouped = groupByDay(actions);
 
   return Object.keys(grouped)
     .sort()

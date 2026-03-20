@@ -1,6 +1,6 @@
 import type { CompletedAction, Project } from './types';
-import { fmtLocalDate, fmtLocalTime, formatDayLabelStatic, isoWeek } from './dates';
-import { dedup, sortActions } from './actions';
+import { fmtLocalTime, formatDayLabelStatic, isoWeek } from './dates';
+import { dedup, groupByDay, sortActions } from './actions';
 
 export function renderMarkdown(
   actions: CompletedAction[],
@@ -18,12 +18,7 @@ export function renderMarkdown(
   ];
 
   const sorted = sortActions(actions, projects, noteProjectIds);
-  const byDay: Record<string, CompletedAction[]> = {};
-  for (const a of sorted) {
-    const date = a.completed_at ? fmtLocalDate(new Date(a.completed_at)) : 'Unknown';
-    (byDay[date] ??= []).push(a);
-  }
-
+  const byDay = groupByDay(sorted);
   const sortedDates = Object.keys(byDay).sort();
 
   let lastWeek: number | null = null;
