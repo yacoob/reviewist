@@ -34,6 +34,7 @@
     "lint": "eslint src/ tests/",
     "validate": "vitest run --coverage && svelte-check --tsconfig ./tsconfig.json && eslint src/ tests/",
     "bench": "bun tests/reconcile.bench.ts",
+    "compile": "bun build --compile src/cli.ts --outfile reviewist-export",
     "clean": "rm -rf dist node_modules/.vite",
     "raze": "rm -rf dist node_modules coverage"
   },
