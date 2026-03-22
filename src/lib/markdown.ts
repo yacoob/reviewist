@@ -32,12 +32,18 @@ export function renderMarkdown(
     const deduped = dedup(byDay[date]);
 
     const label = date === 'Unknown' ? 'Unknown date' : formatDayLabelStatic(date);
-    lines.push('', `## ${label}`);
+    lines.push('', `## ${label}`, '');
 
+    let lastWasNote = false;
     for (const entry of deduped) {
       if (noteProjectIds.has(entry.project_id)) {
         lines.push(`> ${entry.content}`);
+        lastWasNote = true;
       } else {
+        if (lastWasNote) {
+          lines.push('');
+          lastWasNote = false;
+        }
         const time = fmtLocalTime(entry.completed_at);
         const count = entry.count > 1 ? ` ×${entry.count}` : '';
         lines.push(`- [x] ${time} · ${entry.content}${count}`);
