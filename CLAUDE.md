@@ -10,37 +10,12 @@ This is a personal tool for a single user (not multi-tenant). It's a client-side
 
 Reviewist uses bujo-inspired vocabulary, distinct from Todoist's:
 
-| Reviewist term | Todoist equivalent | Meaning |
-|---|---|---|
-| **Action** | Task | Something you do — has a checkmark, completion time |
-| **Note** | Uncompletable task (`* ` prefix) | Something you record — rendered with an emoji in the gutter, no checkmark. The `* ` prefix is stripped during processing; notes without a leading emoji get a default one per project (configured via `NOTE_PROJECT_EMOJIS` in `src/lib/constants.ts`). Lives in a **note project** (configured via `NOTE_PROJECT_NAMES` in `src/lib/constants.ts`). |
+| Reviewist term | Todoist equivalent               | Meaning                                                                                                                                                                                                                                                                                                                                              |
+| -------------- | -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Action**     | Task                             | Something you do — has a checkmark, completion time                                                                                                                                                                                                                                                                                                  |
+| **Note**       | Uncompletable task (`*` prefix) | Something you record — rendered with an emoji in the gutter, no checkmark. The `*` prefix is stripped during processing; notes without a leading emoji get a default one per project (configured via `NOTE_PROJECT_EMOJIS` in `src/lib/constants.ts`). Lives in a **note project** (configured via `NOTE_PROJECT_NAMES` in `src/lib/constants.ts`). |
 
 The Todoist API types (`task_id`, `ActivityEvent`, etc.) keep Todoist's naming. Reviewist's own types use the new vocabulary: `CompletedAction`, `DedupedAction`, `groupActionsByDay()`, etc.
-
-## User Profile
-
-- ~5 actions/day, ~10 monthly "floating" actions, ~50 unmoored backlog actions
-- Primary use case: weekly review showing all actions completed in last 7 days
-- Uses Todoist Pro (required for unlimited activity history and deadline feature)
-- Labels for grouping: `@feline`, `@cleaning`, etc.
-- Has "Aside" and "Within" projects for notes (non-action entries, e.g. "Dawn returns from London") — these should be filterable/excludable
-- Runs a homelab, comfortable self-hosting, prefers self-hosted solutions
-- Android user
-
-## Todoist Workflow Decisions
-
-These are the workarounds adopted for Todoist's limitations:
-
-| Need | Todoist Approach | Notes |
-|---|---|---|
-| Day tasks with times | Native due dates + times | Works perfectly |
-| Recurring tasks (fixed) | `every Monday`, `every 1st` | Native support |
-| Recurring tasks (from completion) | `every! 2 weeks` | The `!` syntax |
-| Month floaters ("do sometime in March") | **Deadline** set to end of month | e.g. deadline March 31. Stays hidden until 7 days before. Filterable: `deadline: March 31` or `deadline before: April 1`. Cannot use deadlines on recurring tasks. |
-| Unmoored "eventually" tasks | No date, live in a project | Invisible in time-based views until assigned a date |
-| Notes (not actions) | Separate "Aside" / "Within" projects | Kludge. Everything is a checkbox. Filter out of working views. Configured via `NOTE_PROJECT_NAMES` in `src/lib/constants.ts`. |
-| Tags/grouping | Labels | `@feline`, `@cleaning`, etc. |
-| Weekly completed review | **This app** | The whole point |
 
 ## API Details
 
@@ -60,7 +35,7 @@ Activity event shape:
   "event_date": "2026-02-27T01:39:52.853568Z",
   "event_type": "completed",
   "extra_data": { "content": "Task content here" },
-  "id": 2.14240561981117e+36,
+  "id": 2.14240561981117e36,
   "object_id": "6g5Mrp4hpm786fp5",
   "object_type": "item",
   "parent_project_id": "6g4hfMqPJ7p557mX",
@@ -124,6 +99,7 @@ reviewist/
 │   │   ├── colors.ts       # TODOIST_COLORS map
 │   │   ├── cache.ts        # IndexedDB cache with integrity checks (SHA-256 + structural)
 │   │   ├── dates.ts        # fmtDate, formatDayLabel, monthKey, monthRange, startOfPreviousMonth
+│   │   ├── events.ts       # Event merge/dedup, SIX_WEEKS_MS/OVERLAP_MS constants
 │   │   ├── actions.ts      # eventsToActions pipeline, prepareNotes, sortActions, grouping, dedup
 │   │   ├── markdown.ts     # Markdown rendering for CLI export (uses sortActions for ordering)
 │   │   ├── store.svelte.ts # Reactive store: fetch orchestration, incremental fetching (uses eventsToActions)
@@ -155,7 +131,7 @@ reviewist/
 #### Data flow
 
 1. **Fetch**: Activity log events (`completed` + `uncompleted`) via paginated API calls
-2. **Process** (`eventsToActions` pipeline): Filter blocklist → reconcile (pair uncompletes with completes) → `prepareNotes` (strip `* ` prefix, prepend default emoji) → `sortActions` (canonical order: note projects first by project then alphabetically, regular tasks by time)
+2. **Process** (`eventsToActions` pipeline): Filter blocklist → reconcile (pair uncompletes with completes) → `prepareNotes` (strip `*` prefix, prepend default emoji) → `sortActions` (canonical order: note projects first by project then alphabetically, regular tasks by time)
 3. **Display**: Group by day, dedup recurring actions (×N badge), render with project colors
 
 #### Timezone convention
@@ -170,6 +146,7 @@ This matters because an action completed at `2026-02-20T23:30:00Z` should appear
 #### Incremental fetching
 
 Raw `ActivityEvent[]` are cached in IndexedDB alongside projects. On page load:
+
 - **Cache empty/corrupt**: full fetch (last 6 weeks)
 - **Cache valid**: render immediately from cached events, then incremental fetch from `max(event_date) - 1 hour` to now
 
@@ -180,6 +157,7 @@ Auto-refresh (configurable: off / 1m / 5m / 15m) uses the same incremental path.
 #### Cache integrity
 
 IndexedDB cache stores raw events + projects + metadata. On load, two checks run:
+
 1. **Structural**: stored event count matches actual array length
 2. **Content hash**: SHA-256 of serialized events matches stored hash
 
@@ -193,21 +171,6 @@ Each `uncompleted` event cancels the most recent preceding `completed` event for
 
 A blocklist of known-bad Todoist task IDs (`BLOCKLIST` in `src/lib/constants.ts`) filters out IDs before reconciliation. Used by both the web app and the CLI export tool.
 
-### Features
-
-- Token input with localStorage persistence, collapsible settings panel (⚙ toggle, `Ctrl+,` shortcut)
-- Fixed 6-week review window, displayed in header
-- IndexedDB cache: renders instantly from cached events, then incremental refresh
-- Configurable auto-refresh interval (off / 1m / 5m / 15m), persisted in localStorage
-- Activity log as data source (captures recurring action completions)
-- Groups completed actions by day (newest day first), sorted by completion time within each day
-- Deduplicates repeated completions (recurring actions): shows ×N badge, latest timestamp, tooltip with all timestamps
-- Project filter chips as multi-select toggles, colored with Todoist project colors; note projects sort first
-- Project tags on actions link to `https://app.todoist.com/app/task/{id}`
-- Notes (from note projects) shown with emoji in gutter instead of checkmark; `* ` prefix stripped, default emoji prepended per project (Aside: 🗓️, Within: 💬) when no leading emoji present
-- Print-friendly CSS
-- Dark theme, JetBrains Mono + DM Sans typography
-
 ### Dev Workflow
 
 - `bun run dev` — Vite dev server with hot reload
@@ -216,11 +179,14 @@ A blocklist of known-bad Todoist task IDs (`BLOCKLIST` in `src/lib/constants.ts`
 - `bun run test` — vitest unit tests
 - `bun run lint` — ESLint with Svelte + TypeScript rules
 - `bun run validate` — runs tests, type checks, and lint in sequence. **Use this to verify changes.**
+- `bun run bench` — run reconciliation benchmarks
+- `bun run compile` — compile CLI to standalone binary (`reviewist-export`)
+- `bun run clean` — remove dist and Vite cache
+- `bun run raze` — remove dist, node_modules, and coverage
 - `bun run src/cli.ts` — CLI export tool, JSON output (requires `TODOIST_TOKEN` env var). Default range: current + previous month.
 - `bun run src/cli.ts --format markdown` — CLI export with markdown output to stdout (Obsidian-compatible frontmatter)
 - `bun run src/cli.ts --outdir ~/vault/reviews` — write monthly `YYYY/YYYY-MM.md` files to directory (overwrites existing)
 - `bun run src/cli.ts --help` — CLI usage and options
-- `bun build --compile src/cli.ts --outfile reviewist-export` — compile CLI to standalone binary
 
 ### Testing
 
@@ -236,13 +202,8 @@ Tests live in `tests/` (project root), using vitest with jsdom environment. Non-
 
 The Todoist SDK (`@doist/todoist-api-typescript`) might be installed as a dev dependency and exposed on `window.todoist` for console experimentation in dev mode **only**. **Do not use the SDK in production code** — it bundles `undici` (a Node.js HTTP client), adding ~600 KB to the build. The app uses direct `fetch()` calls instead.
 
-## Todoist Feature Notes
-
-- **Uncompletable tasks**: Prefix task name with `* ` (asterisk + space). No checkbox, but still gets dates, times, labels, comments, assignees. Caveat: completing a parent task silently marks uncompletable subtasks as done too.
-- **Todoist color palette** (20 colors): berry_red, red, orange, yellow, olive_green, lime_green, green, mint_green, teal, sky_blue, light_blue, blue, grape, violet, lavender, magenta, salmon, charcoal, grey, taupe. Hex values in source code.
-
 ## Reference Links
 
-- Todoist API v1 docs: https://developer.todoist.com/api/v1/
-- Todoist color guide: https://developer.todoist.com/api/v1#tag/Colors
-- Uncompletable tasks: https://www.todoist.com/help/articles/create-an-uncompletable-task-in-todoist-QxQosZuF
+- Todoist API v1 docs: <https://developer.todoist.com/api/v1/>
+- Todoist color guide: <https://developer.todoist.com/api/v1#tag/Colors>
+- Uncompletable tasks: <https://www.todoist.com/help/articles/create-an-uncompletable-task-in-todoist-QxQosZuF>
