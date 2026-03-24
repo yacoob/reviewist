@@ -7,4 +7,5 @@ enter = [
 
 [tools]
 bun = "latest"
+"pipx:showboat" = "latest"
 
