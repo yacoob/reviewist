@@ -1,5 +1,7 @@
 # Reviewist — Project Context
 
+<!-- markdownlint-disable MD013 -->
+
 ## Problem Statement
 
 Todoist has no usable way to review completed tasks. The built-in Activity Log is a chronological audit trail, not a review tool. Completed recurring tasks don't appear in project completed lists at all — only in the Activity Log. The "completed tasks in Today view" feature is experimental/beta. There are no filters that can query completed tasks. The old "Review App for Todoist" integration is dead.
@@ -10,9 +12,9 @@ This is a personal tool for a single user (not multi-tenant). It's a client-side
 
 Reviewist uses bujo-inspired vocabulary, distinct from Todoist's:
 
-| Reviewist term | Todoist equivalent               | Meaning                                                                                                                                                                                                                                                                                                                                              |
-| -------------- | -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Action**     | Task                             | Something you do — has a checkmark, completion time                                                                                                                                                                                                                                                                                                  |
+| Reviewist term | Todoist equivalent              | Meaning                                                                                                                                                                                                                                                                                                                                             |
+| -------------- | ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Action**     | Task                            | Something you do — has a checkmark, completion time                                                                                                                                                                                                                                                                                                 |
 | **Note**       | Uncompletable task (`*` prefix) | Something you record — rendered with an emoji in the gutter, no checkmark. The `*` prefix is stripped during processing; notes without a leading emoji get a default one per project (configured via `NOTE_PROJECT_EMOJIS` in `src/lib/constants.ts`). Lives in a **note project** (configured via `NOTE_PROJECT_NAMES` in `src/lib/constants.ts`). |
 
 The Todoist API types (`task_id`, `ActivityEvent`, etc.) keep Todoist's naming. Reviewist's own types use the new vocabulary: `CompletedAction`, `DedupedAction`, `groupActionsByDay()`, etc.
@@ -71,7 +73,7 @@ Vite + Svelte 5 + TypeScript app. Build produces a single self-contained HTML fi
 
 ### Project Structure
 
-```
+```output
 reviewist/
 ├── index.html              # Vite entry (minimal shell with font links)
 ├── package.json

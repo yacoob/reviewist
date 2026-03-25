@@ -1,5 +1,7 @@
 # Reviewist — Code Walkthrough
 
+<!-- markdownlint-disable MD013 -->
+
 ## The Problem
 
 Todoist has no usable way to review completed tasks. The Activity Log is an audit trail, not a review tool. Recurring task completions don't appear in project completed-task lists at all. There are no filters that can query completed tasks.
