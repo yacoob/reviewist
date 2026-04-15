@@ -9,6 +9,8 @@ import {
   saveRefreshInterval,
   loadDebugEnabled,
   saveDebugEnabled,
+  loadTheme,
+  saveTheme,
 } from '../src/lib/storage';
 import { BLOCKLIST } from '../src/lib/constants';
 
@@ -85,6 +87,34 @@ describe('refresh interval', () => {
   it('stores and loads 0 correctly (auto-refresh off)', () => {
     saveRefreshInterval(0);
     expect(loadRefreshInterval()).toBe(0);
+  });
+});
+
+describe('theme', () => {
+  it('returns auto when unset', () => {
+    expect(loadTheme()).toBe('auto');
+  });
+
+  it('round-trips light', () => {
+    saveTheme('light');
+    expect(loadTheme()).toBe('light');
+  });
+
+  it('round-trips dark', () => {
+    saveTheme('dark');
+    expect(loadTheme()).toBe('dark');
+  });
+
+  it('saving auto removes the key', () => {
+    saveTheme('light');
+    saveTheme('auto');
+    expect(localStorage.getItem('reviewist_theme')).toBeNull();
+    expect(loadTheme()).toBe('auto');
+  });
+
+  it('ignores unknown stored values', () => {
+    localStorage.setItem('reviewist_theme', 'invalid');
+    expect(loadTheme()).toBe('auto');
   });
 });
 

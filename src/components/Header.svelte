@@ -1,16 +1,22 @@
 <script lang="ts">
   import { fmtDate } from '../lib/dates';
+  import type { Theme } from '../lib/storage';
 
   interface Props {
     lastFetchTime: number | null;
     fetching: boolean;
     searchQuery: string;
+    theme: Theme;
     onToggleSetup: () => void;
     onRefresh: () => void;
     onSearch: () => void;
+    onThemeToggle: () => void;
   }
 
-  let { lastFetchTime, fetching, searchQuery, onToggleSetup, onRefresh, onSearch }: Props = $props();
+  const THEME_ICON: Record<Theme, string> = { auto: '⊙', light: '☀', dark: '☽' };
+  const THEME_TITLE: Record<Theme, string> = { auto: 'Theme: auto (click for light)', light: 'Theme: light (click for dark)', dark: 'Theme: dark (click for auto)' };
+
+  let { lastFetchTime, fetching, searchQuery, theme, onToggleSetup, onRefresh, onSearch, onThemeToggle }: Props = $props();
 
   const since = $derived(fmtDate(new Date(Date.now() - 42 * 86400000)));
 
@@ -51,6 +57,7 @@
       <button class="refresh-indicator" onclick={onRefresh} disabled={fetching} title="Click to refresh">{indicatorText}</button>
     {/if}
     <button class="btn-bare" onclick={onSearch} title="Filter actions (Ctrl+K)">⌕</button>
+    <button class="btn-bare" onclick={onThemeToggle} title={THEME_TITLE[theme]}>{THEME_ICON[theme]}</button>
     <button class="btn-bare" onclick={onToggleSetup} title="Settings (Ctrl+,)">⚙</button>
   </div>
 </header>

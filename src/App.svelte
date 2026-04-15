@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import type { StatusType } from './lib/types';
   import { store } from './lib/store.svelte';
+  import { loadTheme, saveTheme, type Theme } from './lib/storage';
   import Header from './components/Header.svelte';
   import SetupPanel from './components/SetupPanel.svelte';
   import StatusMessage from './components/StatusMessage.svelte';
@@ -11,6 +12,22 @@
   let statusMessage = $state('');
   let statusType: StatusType = $state(null);
   let setupVisible = $state(false);
+  let theme: Theme = $state(loadTheme());
+
+  const THEME_CYCLE: Record<Theme, Theme> = { auto: 'light', light: 'dark', dark: 'auto' };
+
+  $effect(() => {
+    if (theme === 'auto') {
+      delete document.documentElement.dataset.theme;
+    } else {
+      document.documentElement.dataset.theme = theme;
+    }
+  });
+
+  function handleThemeToggle() {
+    theme = THEME_CYCLE[theme];
+    saveTheme(theme);
+  }
 
   let searchOpen = $state(false);
   let searchInput = $state('');
@@ -123,7 +140,7 @@
 <svelte:window onkeydown={handleGlobalKey} />
 
 <div class="container">
-  <Header lastFetchTime={store.lastFetchTime} fetching={store.fetching} {searchQuery} onToggleSetup={() => setupVisible = !setupVisible} onRefresh={handleFetch} onSearch={openSearch} />
+  <Header lastFetchTime={store.lastFetchTime} fetching={store.fetching} {searchQuery} {theme} onToggleSetup={() => setupVisible = !setupVisible} onRefresh={handleFetch} onSearch={openSearch} onThemeToggle={handleThemeToggle} />
   <SetupPanel
     visible={setupVisible}
     bind:token={store.token}

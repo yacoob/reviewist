@@ -2,6 +2,9 @@ const TOKEN_KEY = 'reviewist_token';
 const EXCLUDED_KEY = 'reviewist_excluded';
 const REFRESH_KEY = 'reviewist_refresh';
 const DEBUG_KEY = 'reviewist_debug';
+const THEME_KEY = 'reviewist_theme';
+
+export type Theme = 'auto' | 'light' | 'dark';
 
 export function loadToken(): string {
   return localStorage.getItem(TOKEN_KEY) ?? '';
@@ -44,4 +47,18 @@ export function loadDebugEnabled(): boolean {
 
 export function saveDebugEnabled(on: boolean): void {
   localStorage.setItem(DEBUG_KEY, on ? '1' : '0');
+}
+
+export function loadTheme(): Theme {
+  const val = localStorage.getItem(THEME_KEY);
+  if (val === 'light' || val === 'dark') return val;
+  return 'auto';
+}
+
+export function saveTheme(theme: Theme): void {
+  if (theme === 'auto') {
+    localStorage.removeItem(THEME_KEY);
+  } else {
+    localStorage.setItem(THEME_KEY, theme);
+  }
 }
