@@ -91,8 +91,8 @@ describe('refresh interval', () => {
 });
 
 describe('theme', () => {
-  it('returns auto when unset', () => {
-    expect(loadTheme()).toBe('auto');
+  it('returns dark when unset', () => {
+    expect(loadTheme()).toBe('dark');
   });
 
   it('round-trips light', () => {
@@ -105,16 +105,9 @@ describe('theme', () => {
     expect(loadTheme()).toBe('dark');
   });
 
-  it('saving auto removes the key', () => {
-    saveTheme('light');
-    saveTheme('auto');
-    expect(localStorage.getItem('reviewist_theme')).toBeNull();
-    expect(loadTheme()).toBe('auto');
-  });
-
-  it('ignores unknown stored values', () => {
+  it('returns dark for unknown stored values', () => {
     localStorage.setItem('reviewist_theme', 'invalid');
-    expect(loadTheme()).toBe('auto');
+    expect(loadTheme()).toBe('dark');
   });
 });
 

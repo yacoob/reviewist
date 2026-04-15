@@ -14,18 +14,12 @@
   let setupVisible = $state(false);
   let theme: Theme = $state(loadTheme());
 
-  const THEME_CYCLE: Record<Theme, Theme> = { auto: 'light', light: 'dark', dark: 'auto' };
-
   $effect(() => {
-    if (theme === 'auto') {
-      delete document.documentElement.dataset.theme;
-    } else {
-      document.documentElement.dataset.theme = theme;
-    }
+    document.documentElement.dataset.theme = theme;
   });
 
   function handleThemeToggle() {
-    theme = THEME_CYCLE[theme];
+    theme = theme === 'dark' ? 'light' : 'dark';
     saveTheme(theme);
   }
 

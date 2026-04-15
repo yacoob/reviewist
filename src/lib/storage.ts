@@ -4,7 +4,7 @@ const REFRESH_KEY = 'reviewist_refresh';
 const DEBUG_KEY = 'reviewist_debug';
 const THEME_KEY = 'reviewist_theme';
 
-export type Theme = 'auto' | 'light' | 'dark';
+export type Theme = 'light' | 'dark';
 
 export function loadToken(): string {
   return localStorage.getItem(TOKEN_KEY) ?? '';
@@ -50,15 +50,9 @@ export function saveDebugEnabled(on: boolean): void {
 }
 
 export function loadTheme(): Theme {
-  const val = localStorage.getItem(THEME_KEY);
-  if (val === 'light' || val === 'dark') return val;
-  return 'auto';
+  return localStorage.getItem(THEME_KEY) === 'light' ? 'light' : 'dark';
 }
 
 export function saveTheme(theme: Theme): void {
-  if (theme === 'auto') {
-    localStorage.removeItem(THEME_KEY);
-  } else {
-    localStorage.setItem(THEME_KEY, theme);
-  }
+  localStorage.setItem(THEME_KEY, theme);
 }
