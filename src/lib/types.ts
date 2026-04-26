@@ -1,5 +1,6 @@
 export interface CompletedAction {
   content: string;
+  description?: string;
   completed_at: string;
   project_id: string;
   task_id: string;
@@ -31,6 +32,7 @@ export interface ActivityEvent {
   initiator_id: string;
   extra_data: {
     content?: string;
+    description?: string;
     client?: string;
     note_count?: number;
   };

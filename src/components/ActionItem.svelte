@@ -38,6 +38,8 @@
   let allTimesFormatted = $derived(
     action.allTimes.map((ts: string) => fmtLocalTime(ts)).sort().join(', '),
   );
+
+  let expanded = $state(false);
 </script>
 
 <div class="action-item" class:is-note={isNote}>
@@ -49,6 +51,9 @@
     {/if}
   </div>
   <span class="action-content">{#each contentParts as part, i (i)}{#if part.type === 'link'}<a class="action-inline-link" href={part.href} target="_blank">{part.text}</a>{:else}{part.text}{/if}{/each}{#if !isNote && action.count > 1}&nbsp;<span class="action-count">(×{action.count})</span>{/if}</span>
+  {#if action.description}
+    <button class="description-toggle" onclick={() => expanded = !expanded} aria-expanded={expanded}>{expanded ? '[−]' : '[+]'}</button>
+  {/if}
   {#if !isNote}
     <a
       class="action-time"
@@ -58,6 +63,9 @@
       target="_blank">{latestTime}</a>
   {/if}
 </div>
+{#if action.description && expanded}
+  <div class="action-description">{action.description}</div>
+{/if}
 
 <style>
   .action-item {
@@ -108,6 +116,25 @@
     font-family: 'JetBrains Mono', monospace;
     font-size: 0.75em;
     color: var(--text-muted);
+  }
+  .description-toggle {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--text-muted);
+    line-height: 1;
+    flex-shrink: 0;
+    margin-left: 0.6rem;
+  }
+  .description-toggle:hover { color: var(--text); }
+  .action-description {
+    padding: 0.2rem 0 0.3rem 2rem;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    white-space: pre-wrap;
   }
 
   @media (max-width: 600px) {

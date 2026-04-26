@@ -33,6 +33,7 @@ export function reconcile(events: ActivityEvent[]): CompletedAction[] {
       tasks.push({
         id: e.object_id + '|' + e.event_date,
         content: e.extra_data?.content ?? '',
+        description: e.extra_data?.description,
         completed_at: e.event_date,
         project_id: e.parent_project_id ?? '',
         task_id: e.object_id,
