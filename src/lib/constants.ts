@@ -1,5 +1,10 @@
 export const NOTE_PROJECT_NAMES: readonly string[] = ['Aside', 'Within'];
 
+// Actions completed from Inbox are folded into this project, so stray
+// to-dos that never got filed don't get their own chip in the UI.
+export const INBOX_PROJECT_NAME = 'Inbox';
+export const PLATE_PROJECT_NAME = 'Plate';
+
 export const NOTE_PROJECT_EMOJIS: Readonly<Record<string, string>> = {
   'Aside': '🗓️',
   'Within': '💬',

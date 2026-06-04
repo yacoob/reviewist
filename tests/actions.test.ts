@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { groupActionsByDay, sortKey, compareProjects, prepareNotes, eventsToActions } from '../src/lib/actions';
+import { groupActionsByDay, sortKey, compareProjects, prepareNotes, foldInbox, eventsToActions } from '../src/lib/actions';
 import type { ActivityEvent, CompletedAction, Project } from '../src/lib/types';
 import { TODOIST_COLORS } from '../src/lib/colors';
 import { fmtLocalDate } from '../src/lib/dates';
@@ -329,6 +329,34 @@ describe('prepareNotes', () => {
   });
 });
 
+describe('foldInbox', () => {
+  const foldProjects: Record<string, Project> = {
+    inbox: { name: 'Inbox', color: 'grey' },
+    plate: { name: 'Plate', color: 'blue' },
+    work: { name: 'Work', color: 'green' },
+  };
+
+  it('remaps Inbox actions to Plate', () => {
+    const result = foldInbox([action({ project_id: 'inbox' })], foldProjects);
+    expect(result[0].project_id).toBe('plate');
+  });
+
+  it('leaves non-Inbox actions untouched', () => {
+    const result = foldInbox([action({ project_id: 'work' })], foldProjects);
+    expect(result[0].project_id).toBe('work');
+  });
+
+  it('is a no-op when there is no Inbox project', () => {
+    const result = foldInbox([action({ project_id: 'work' })], { plate: foldProjects.plate });
+    expect(result[0].project_id).toBe('work');
+  });
+
+  it('is a no-op when there is no Plate project', () => {
+    const result = foldInbox([action({ project_id: 'inbox' })], { inbox: foldProjects.inbox });
+    expect(result[0].project_id).toBe('inbox');
+  });
+});
+
 function completedEvent(overrides: Partial<ActivityEvent> = {}): ActivityEvent {
   return {
     id: 1,
@@ -367,5 +395,16 @@ describe('eventsToActions', () => {
   it('returns empty array for empty events', () => {
     const result = eventsToActions([], pipelineProjects, new Set(), new Set());
     expect(result).toEqual([]);
+  });
+
+  it('folds Inbox actions into Plate', () => {
+    const foldProjects: Record<string, Project> = {
+      inbox: { name: 'Inbox', color: 'grey' },
+      plate: { name: 'Plate', color: 'blue' },
+    };
+    const events = [completedEvent({ object_id: 't1', parent_project_id: 'inbox', extra_data: { content: 'Stray todo' } })];
+    const result = eventsToActions(events, foldProjects, new Set(), new Set());
+    expect(result).toHaveLength(1);
+    expect(result[0].project_id).toBe('plate');
   });
 });

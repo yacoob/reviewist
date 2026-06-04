@@ -2,7 +2,7 @@ import type { ActivityEvent, CompletedAction, DedupedAction, Project } from './t
 import { reconcile } from './reconcile';
 import { TODOIST_COLORS } from './colors';
 import { formatDayLabel, fmtLocalDate } from './dates';
-import { NOTE_PROJECT_EMOJIS } from './constants';
+import { NOTE_PROJECT_EMOJIS, INBOX_PROJECT_NAME, PLATE_PROJECT_NAME } from './constants';
 
 const LEADING_EMOJI_RE = /^\p{Extended_Pictographic}/u;
 
@@ -99,6 +99,18 @@ function groupByProject(actions: DedupedAction[], projects: Record<string, Proje
     .sort((a, b) => compareProjects(a.projectId, b.projectId, projects, noteProjectIds));
 }
 
+function projectIdByName(projects: Record<string, Project>, name: string): string | undefined {
+  return Object.entries(projects).find(([, p]) => p.name === name)?.[0];
+}
+
+/** Remap actions completed from the Inbox project into the Plate project. */
+export function foldInbox(actions: CompletedAction[], projects: Record<string, Project>): CompletedAction[] {
+  const inboxId = projectIdByName(projects, INBOX_PROJECT_NAME);
+  const plateId = projectIdByName(projects, PLATE_PROJECT_NAME);
+  if (!inboxId || !plateId) return actions;
+  return actions.map(a => a.project_id === inboxId ? { ...a, project_id: plateId } : a);
+}
+
 export function prepareNotes(
   actions: CompletedAction[],
   noteProjectIds: Set<string>,
@@ -125,7 +137,7 @@ export function eventsToActions(
   noteProjectIds: Set<string>,
 ): CompletedAction[] {
   const filtered = events.filter(e => !blocklist.has(e.object_id));
-  const actions = prepareNotes(reconcile(filtered), noteProjectIds, projects);
+  const actions = prepareNotes(foldInbox(reconcile(filtered), projects), noteProjectIds, projects);
   return sortActions(actions, projects, noteProjectIds);
 }
 
