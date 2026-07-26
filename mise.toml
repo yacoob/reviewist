@@ -1,9 +1,11 @@
-[hooks]
-enter = [
-  "jj config set --repo 'revset-aliases.\"immutable_heads()\"' 'present(trunk()) & committer_date(before:\"7 days ago\")'",
-  "mise i -q",
-  "bun i --silent",
-]
+[[hooks.enter]]
+script = "jj config set --repo 'revset-aliases.\"immutable_heads()\"' 'present(trunk()) & committer_date(before:\"7 days ago\")'"
+
+[[hooks.enter]]
+script = "mise i -q"
+
+[[hooks.enter]]
+script = "bun i --silent"
 
 [tools]
 bun = "latest"
