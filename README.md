@@ -248,7 +248,7 @@ It handles compound emoji (like 👨‍👩‍👧 joined with ZWJ sequences) an
 
 ## 9. CLI and Markdown Export
 
-`cli.ts` reuses the same library functions as the web app — `fetchProjects`, `fetchActivityEvents`, `eventsToActions` — but runs under Bun with `TODOIST_TOKEN` from the environment. Three output modes:
+`cli.ts` reuses the same library functions as the web app — `fetchProjects`, `fetchActivityEvents`, `eventsToActions` — but runs under Node (via `tsx`) with `TODOIST_TOKEN` from the environment. Three output modes:
 
 - **JSON** (default): action data with referenced projects
 - **Markdown** (`--format markdown`): single document to stdout
@@ -277,7 +277,7 @@ The test suite has 145 tests across 10 files, enforcing 95% coverage for stateme
 Cache tests are split across three files to avoid IndexedDB connection conflicts: happy-path tests, IDB error callback tests (via prototype patching), and version upgrade tests. Each file gets its own jsdom environment instance.
 
 ```bash
-bun run test
+pnpm test
 
  Tests  145 passed (145)
  Start at  17:25:23

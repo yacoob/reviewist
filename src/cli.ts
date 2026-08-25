@@ -4,7 +4,7 @@ import { eventsToActions } from './lib/actions';
 import { BLOCKLIST, NOTE_PROJECT_NAMES } from './lib/constants';
 import { fmtDate, startOfPreviousMonth, monthKey, monthRange, snapToMonthStart } from './lib/dates';
 import { renderMarkdown } from './lib/markdown';
-import { mkdirSync } from 'fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'fs';
 import type { CompletedAction, Project } from './lib/types';
 
 function die(msg: string): never {
@@ -73,65 +73,71 @@ const noteProjectNames: readonly string[] = args['note-projects']
 // Blocklist: built-in + optional file
 let blocklist: ReadonlySet<string> = BLOCKLIST;
 if (args.blocklist) {
-  const extra = parseBlocklistFile(await Bun.file(args.blocklist).text());
+  const extra = parseBlocklistFile(readFileSync(args.blocklist, 'utf8'));
   blocklist = new Set([...BLOCKLIST, ...extra]);
 }
 
-// Fetch
-const [projects, events] = await Promise.all([
-  fetchProjects(token),
-  fetchActivityEvents(token, since),
-]);
+// SEA builds bundle this file as CommonJS, which cannot take a top-level
+// await, so the fetch-and-render half lives in main().
+async function main(token: string) {
+  // Fetch
+  const [projects, events] = await Promise.all([
+    fetchProjects(token),
+    fetchActivityEvents(token, since),
+  ]);
 
-// Determine note project IDs
-const noteProjectIds = new Set(
-  noteProjectNames
-    .map(name => Object.entries(projects).find(([, p]) => p.name === name)?.[0])
-    .filter((id): id is string => id != null),
-);
+  // Determine note project IDs
+  const noteProjectIds = new Set(
+    noteProjectNames
+      .map(name => Object.entries(projects).find(([, p]) => p.name === name)?.[0])
+      .filter((id): id is string => id != null),
+  );
 
-// Events → display-ready actions
-const actions = eventsToActions(events, projects, blocklist, noteProjectIds);
+  // Events → display-ready actions
+  const actions = eventsToActions(events, projects, blocklist, noteProjectIds);
 
-const format = args.format ?? 'json';
+  const format = args.format ?? 'json';
 
-if (args.outdir) {
-  const byMonth: Record<string, CompletedAction[]> = {};
-  for (const a of actions) {
-    if (!a.completed_at) continue;
-    const mk = monthKey(a.completed_at);
-    (byMonth[mk] ??= []).push(a);
-  }
-
-  const months = Object.keys(byMonth).sort();
-  for (const mk of months) {
-    const range = monthRange(mk);
-    const [y, m] = mk.split('-').map(Number);
-    const monthTitle = new Date(y, m - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-    const md = renderMarkdown(byMonth[mk], projects, noteProjectIds, range, monthTitle);
-    const [year] = mk.split('-');
-    const dir = `${args.outdir}/${year}`;
-    mkdirSync(dir, { recursive: true });
-    await Bun.write(`${dir}/${mk}.md`, md);
-    console.error(`wrote ${dir}/${mk}.md (${byMonth[mk].length} actions)`);
-  }
-} else if (format === 'json') {
-  const referencedProjects: Record<string, Project> = {};
-  for (const a of actions) {
-    if (a.project_id && projects[a.project_id]) {
-      referencedProjects[a.project_id] = projects[a.project_id];
+  if (args.outdir) {
+    const byMonth: Record<string, CompletedAction[]> = {};
+    for (const a of actions) {
+      if (!a.completed_at) continue;
+      const mk = monthKey(a.completed_at);
+      (byMonth[mk] ??= []).push(a);
     }
+
+    const months = Object.keys(byMonth).sort();
+    for (const mk of months) {
+      const range = monthRange(mk);
+      const [y, m] = mk.split('-').map(Number);
+      const monthTitle = new Date(y, m - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+      const md = renderMarkdown(byMonth[mk], projects, noteProjectIds, range, monthTitle);
+      const [year] = mk.split('-');
+      const dir = `${args.outdir}/${year}`;
+      mkdirSync(dir, { recursive: true });
+      writeFileSync(`${dir}/${mk}.md`, md);
+      console.error(`wrote ${dir}/${mk}.md (${byMonth[mk].length} actions)`);
+    }
+  } else if (format === 'json') {
+    const referencedProjects: Record<string, Project> = {};
+    for (const a of actions) {
+      if (a.project_id && projects[a.project_id]) {
+        referencedProjects[a.project_id] = projects[a.project_id];
+      }
+    }
+    const output = {
+      projects: referencedProjects,
+      actions: actions.map(a => ({
+        ...a,
+        is_note: noteProjectIds.has(a.project_id),
+      })),
+    };
+    console.log(JSON.stringify(output, null, 2));
+  } else if (format === 'markdown') {
+    process.stdout.write(renderMarkdown(actions, projects, noteProjectIds, { since, until: fmtDate(new Date()) }));
+  } else {
+    die(`Unknown format "${format}". Available: json, markdown`);
   }
-  const output = {
-    projects: referencedProjects,
-    actions: actions.map(a => ({
-      ...a,
-      is_note: noteProjectIds.has(a.project_id),
-    })),
-  };
-  console.log(JSON.stringify(output, null, 2));
-} else if (format === 'markdown') {
-  process.stdout.write(renderMarkdown(actions, projects, noteProjectIds, { since, until: fmtDate(new Date()) }));
-} else {
-  die(`Unknown format "${format}". Available: json, markdown`);
 }
+
+main(token);

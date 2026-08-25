@@ -1,0 +1,5 @@
+# sharp and esbuild ship platform-specific binaries via postinstall; pnpm blocks
+# dependency build scripts unless they are allowed here.
+allowBuilds:
+  esbuild: true
+  sharp: true

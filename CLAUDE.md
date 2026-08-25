@@ -69,7 +69,7 @@ When a recurring task is completed, Todoist doesn't create a separate "completed
 
 ## Current State
 
-Vite + Svelte 5 + TypeScript app. Build produces a single self-contained HTML file via `vite-plugin-singlefile`. Dev environment managed by mise (Bun runtime).
+Vite + Svelte 5 + TypeScript app. Build produces a single self-contained HTML file via `vite-plugin-singlefile`. Dev environment managed by direnv (Nix flake devShell: Node + pnpm).
 
 ### Project Structure
 
@@ -81,12 +81,16 @@ reviewist/
 ├── tsconfig.json
 ├── svelte.config.js
 ├── eslint.config.js
-├── mise.toml               # mise dev environment (Bun)
+├── sea-config.json         # node SEA blob config for `pnpm compile`
+├── pnpm-workspace.yaml     # pnpm settings (allowBuilds for esbuild + sharp)
+├── flake.nix               # Nix devShell (nodejs, pnpm); entered via .envrc
+├── .envrc                  # direnv: use flake, pnpm install, PATH_add node_modules/.bin
 ├── scripts/
 │   ├── todoist-sweep-aside.sh      # Daily cron: closes uncompletable Aside tasks due today
 │   ├── todoist-sweep-aside.service # systemd service unit
 │   ├── todoist-sweep-aside.timer   # systemd timer unit
-│   └── obsidian-reviewist.css      # Obsidian CSS snippet: non-italic blockquotes for reviewist notes
+│   ├── obsidian-reviewist.css      # Obsidian CSS snippet: non-italic blockquotes for reviewist notes
+│   └── build-sea.sh                # Builds reviewist-export via esbuild + node SEA + postject
 ├── src/
 │   ├── main.ts             # Mount App
 │   ├── cli.ts              # CLI export tool entry point
@@ -175,26 +179,26 @@ A blocklist of known-bad Todoist task IDs (`BLOCKLIST` in `src/lib/constants.ts`
 
 ### Dev Workflow
 
-- `bun run dev` — Vite dev server with hot reload
-- `bun run build` — produces `dist/index.html` (single file, works from `file://`)
-- `bun run check` — svelte-check type diagnostics
-- `bun run test` — vitest unit tests
-- `bun run lint` — ESLint with Svelte + TypeScript rules
-- `bun run validate` — runs tests, type checks, and lint in sequence. **Use this to verify changes.**
-- `bun run bench` — run reconciliation benchmarks
-- `bun run compile` — compile CLI to standalone binary (`reviewist-export`)
-- `bun run clean` — remove dist and Vite cache
-- `bun run raze` — remove dist, node_modules, and coverage
-- `bun run src/cli.ts` — CLI export tool, JSON output (requires `TODOIST_TOKEN` env var). Default range: current + previous month.
-- `bun run src/cli.ts --format markdown` — CLI export with markdown output to stdout (Obsidian-compatible frontmatter)
-- `bun run src/cli.ts --outdir ~/vault/reviews` — write monthly `YYYY/YYYY-MM.md` files to directory (overwrites existing)
-- `bun run src/cli.ts --help` — CLI usage and options
+- `pnpm dev` — Vite dev server with hot reload
+- `pnpm build` — produces `dist/index.html` (single file, works from `file://`)
+- `pnpm check` — svelte-check type diagnostics
+- `pnpm test` — vitest unit tests
+- `pnpm lint` — ESLint with Svelte + TypeScript rules
+- `pnpm validate` — runs tests, type checks, and lint in sequence. **Use this to verify changes.**
+- `pnpm bench` — run reconciliation benchmarks
+- `pnpm compile` — build standalone `reviewist-export` binary (node SEA; see `scripts/build-sea.sh`)
+- `pnpm clean` — remove dist, build, and Vite cache
+- `pnpm raze` — remove dist, build, node_modules, coverage, .direnv, and the compiled binary
+- `pnpm export` — CLI export tool, JSON output (requires `TODOIST_TOKEN` env var). Default range: current + previous month.
+- `pnpm export -- --format markdown` — CLI export with markdown output to stdout (Obsidian-compatible frontmatter)
+- `pnpm export -- --outdir ~/vault/reviews` — write monthly `YYYY/YYYY-MM.md` files to directory (overwrites existing)
+- `pnpm export -- --help` — CLI usage and options
 
 ### Testing
 
 Tests live in `tests/` (project root), using vitest with jsdom environment. Non-trivial `src/lib/` logic should have test coverage. When modifying existing code, verify existing tests still pass. When adding new logic, add tests if the code is non-trivial and feasible to test (pure functions, state logic — not Svelte components or fetch wrappers).
 
-- `bun run validate` runs vitest, svelte-check, and eslint in sequence.
+- `pnpm validate` runs vitest, svelte-check, and eslint in sequence.
 - `tests/reconcile.test.ts` covers reconciliation: uncomplete cancellation, recurring action handling, out-of-order events.
 - Cache tests are split across three files: `cache.test.ts` (round-trips, integrity checks, throw-based errors via fake-indexeddb), `cache-errors.test.ts` (IDB `onerror` callbacks via prototype patching), `cache-upgrade.test.ts` (DB version upgrade, isolated to avoid connection conflicts).
 - Coverage thresholds are enforced at 95% for statements, branches, functions, and lines.

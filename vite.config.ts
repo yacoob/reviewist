@@ -50,6 +50,9 @@ export default defineConfig({
   ],
   test: {
     environment: 'jsdom',
+    // anchored at the project root so the copy of this repo that nix-direnv
+    // symlinks into .direnv/flake-inputs/ is not picked up as a second suite
+    include: ['tests/**/*.test.ts'],
     coverage: {
       provider: 'v8',
       include: ['src/lib/**'],

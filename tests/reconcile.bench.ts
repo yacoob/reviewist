@@ -1,7 +1,7 @@
 /**
  * Benchmark for reconcile().
  *
- * Run: npx tsx tests/reconcile.bench.ts
+ * Run: pnpm bench
  *
  * Generates event streams modeled on observed usage patterns:
  * - 5 recurring tasks at varied frequencies (~2.67 completions/day)
