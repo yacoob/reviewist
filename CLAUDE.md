@@ -108,6 +108,7 @@ reviewist/
 │   │   ├── events.ts       # Event merge/dedup, SIX_WEEKS_MS/OVERLAP_MS constants
 │   │   ├── actions.ts      # eventsToActions pipeline, prepareNotes, sortActions, grouping, dedup
 │   │   ├── markdown.ts     # Markdown rendering for CLI export (uses sortActions for ordering)
+│   │   ├── richtext.ts     # Sanitized markdown-to-HTML for action titles and descriptions (marked + DOMPurify)
 │   │   ├── store.svelte.ts # Reactive store: fetch orchestration, incremental fetching (uses eventsToActions)
 │   │   └── storage.ts      # localStorage helpers (token, excluded projects, refresh interval)
 │   └── components/
@@ -129,7 +130,8 @@ reviewist/
     ├── reconcile.bench.ts
     ├── storage.test.ts
     ├── actions.test.ts
-    └── markdown.test.ts
+    ├── markdown.test.ts
+    └── richtext.test.ts
 ```
 
 ### Architecture
